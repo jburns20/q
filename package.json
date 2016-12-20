@@ -1,0 +1,18 @@
+{
+  "name": "queue15122",
+  "version": "1.0.0",
+  "description": "An office hours queue for Carnegie Mellon's Principles of Imperative Computation class.",
+  "main": "index.js",
+  "author": "Jonathan Burns <jaburns@andrew.cmu.edu>",
+  "dependencies": {
+    "async": "^2.1.4",
+    "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "googleapis": "^15.0.0",
+    "mysql": "^2.12.0",
+    "request": "^2.79.0",
+    "sequelize": "^3.27.0"
+  }
+}
