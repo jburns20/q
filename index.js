@@ -13,7 +13,7 @@ var app = express();
 app.use(bodyParser.urlencoded({"extended": false}));
 app.use(cookieParser());
 
-var oauth2Client = new OAuth2(config.google_id, config.google_key,
+var oauth2Client = new OAuth2(config.google_id, config.google_secret,
   "http://q.15122.tk/oauth2/callback"
 );
 var auth_url = oauth2Client.generateAuthUrl({
@@ -42,4 +42,4 @@ app.get("/oauth2/callback", function(req,res) {
     });
 });
 
-app.listen(15122);
+app.listen(config.server_port);
