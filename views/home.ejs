@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<%- include("head.ejs") %>
+<body>
+<%- include("header.ejs") %>
+<div class="container">
+  <ul class="collection">
+    <% var sawSelf = false; %>
+    <% entries.forEach(function(entry) { %>
+    <% if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id)) { %>
+    <% sawSelf = true; %>
+      <li class="collection-item me"><form style="line-height: 36px;" method="POST">
+      <input type="hidden" name="entry_id" value="<%= entry.id %>">
+      <%= entry.name %> (<%= entry.user_id %>)
+      <button class="secondary-content waves-effect waves-light btn grey" name="action" value="REM">Remove</button>
+      <div class="clear">
+      </form></li>
+    <% } else { %>
+      <li class="collection-item">&nbsp;</li>
+    <% }}); %>
+  </ul>
+  <% if (!sawSelf) { %>
+  <h6 class="center" style="font-size: 120%;">
+    Add your name to the queue:
+  </h6>
+  <form method="POST" class="row">
+  <div class="input-field inline col l4 m6 s12">
+    <input id="name" name="name" type="text" required>
+    <label for="name">Name</label>
+  </div>
+  <div class="input-field inline col l3 m6 s12">
+    <input id="user_id" name="user_id" type="text" pattern="[A-Za-z0-9]*" minlength=3 maxlength=8 required
+    <% if (session) { %>
+    value="<%= session.user_id %>"
+    <% if (session.authenticated) { %>
+    readonly="true"
+    <% }} %>
+    >
+    <label for="user_id">Andrew ID</label>
+  </div>
+  <div class="input-field inline col l3 m6 s12">
+    <select novalidate id="topic" name="topic">
+      <option value="" disabled selected hidden>Choose a topic</option>
+      <option value="1">Option 1</option>
+      <option value="2">Option 2</option>
+      <option value="3">Option 3</option>
+    </select>
+    <label for="topic">What would you like help with?</label>
+  </div>
+  <div class="input-field inline col l2 m2 s12 center-btn">
+    <button class="waves-effect waves-light btn cyan" name="action" value="ADD">Enter</button>
+  </div>
+  </form>
+  <% } %>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('select').material_select();
+    <% if (toast) { %>
+    Materialize.toast("<%= toast %>", 4000);
+    <% } %>
+});
+</script>
+</body>
+</html>

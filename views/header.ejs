@@ -1,0 +1,31 @@
+<nav class="cyan" role="navigation">
+  <div class="nav-wrapper container">
+    <span class="brand-logo hide-on-large-only"><%= title %></span>
+    <ul class="hide-on-med-and-down">
+      <li class="brand-logo" style="position: initial;"><%= title %></li>
+      <li><a class="waves-effect btn blue lighten-5 black-text">Freeze</a></li>
+    </ul>
+    <ul class="right hide-on-med-and-down">
+      <% if (session && session.authenticated) { %>
+      <li><a href="/logout">Log Out</a></li>
+      <% } else { %>
+      <li><a href="/login">Log In</a></li>
+      <% } %>
+    </ul>
+
+    <ul id="nav-mobile" class="side-nav">
+      <li><a href="#">Freeze Queue</a></li>
+      <% if (session && session.authenticated) { %>
+      <li><a href="/logout">Log Out</a></li>
+      <% } else { %>
+      <li><a href="/login">Log In</a></li>
+      <% } %>
+    </ul>
+    <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
+  </div>
+</nav>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".button-collapse").sideNav();
+});
+</script>

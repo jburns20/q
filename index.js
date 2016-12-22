@@ -1,45 +1,36 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
-var request = require('request');
-var async = require('async');
-var google = require('googleapis');
-var OAuth2 = google.auth.OAuth2;
-
 var config = require("./config.json");
 var model = require("./model.js");
 
+var login = require("./routes/login.js");
+var home = require("./routes/home.js");
+
 var app = express();
+app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({"extended": false}));
 app.use(cookieParser());
-
-var oauth2Client = new OAuth2(config.google_id, config.google_secret,
-  "http://q.15122.tk/oauth2/callback"
-);
-var auth_url = oauth2Client.generateAuthUrl({
-  scope: ["profile", "email"],
-  hd: "andrew.cmu.edu"
-});
-
-app.get("/login", function(req,res) {
-    res.redirect(auth_url);
-});
-
-app.get("/oauth2/callback", function(req,res) {
-    async.waterfall([
-        function(callback) {
-            oauth2Client.getToken(req.query.code, callback);
-        },
-        function(tokens, something, callback) {
-            google.oauth2("v2").userinfo.get({
-                access_token: tokens.access_token
-            }, callback);
-        }, function(body, callback) {
-            res.send(body);
+app.use(express.static('static'));
+app.use(function(req, res, next) {
+    model.sql.sync().then(function() {
+        if (!req.cookies.auth) {
+            next();
+            return;
         }
-    ], function(error) {
-        res.send("ERROR: " + error);
+        model.Session.findOne({where: {session_key: req.cookies.auth}})
+               .then(function(user) {
+            req.session = user;
+            next();
+        });
     });
 });
+
+app.get("/", home.get);
+app.post("/", home.post);
+
+app.get("/login", login.get_login);
+app.get("/oauth2/callback", login.get_callback);
+app.get("/logout", login.get_logout);
 
 app.listen(config.server_port);
