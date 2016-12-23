@@ -9,19 +9,50 @@
     <% entries.forEach(function(entry) { %>
     <% if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id)) { %>
     <% sawSelf = true; %>
-      <li class="collection-item me"><form style="line-height: 36px;" method="POST">
+      <li class="collection-item me"><form method="POST">
       <input type="hidden" name="entry_id" value="<%= entry.id %>">
       <%= entry.name %> (<%= entry.user_id %>)
-      <button class="secondary-content waves-effect waves-light btn grey" name="action" value="REM">Remove</button>
+      <% if (entry.status == 1) { %>
+      <span class="secondary-content"><%= entry.TA.full_name %> is helping</span>
+      <% } else { %>
+      <button class="secondary-content waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2" name="action" value="REM">Remove</button>
+      <% } %>
+      <div class="clear">
+      </form></li>
+    <% } else if (session && session.TA) { %>
+      <li class="collection-item"><form method="POST">
+      <input type="hidden" name="entry_id" value="<%= entry.id %>">
+      <%= entry.name %> (<%= entry.user_id %>)
+      <div class="secondary-content">
+      <% if (entry.status == 1 && session.TA.id == entry.TA.id) { %>
+      <div class="right">You are helping</div><br>
+      <button class="waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2" name="action" value="CANCEL">Cancel</button>&nbsp;
+      <button class="waves-effect waves-light btn blue" name="action" value="DONE">Done</button>
+      <% } else if (entry.status == 1) { %>
+      <span><%= entry.TA.full_name %> is helping</span>
+      <button class="waves-effect waves btn-flat grey lighten-2 black-text x-button" name="action" value="CANCEL">X</button>
+      <% } else if (!session.TA.helping_id) { %>
+      <button class="waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2" name="action" value="REM">Remove</button>&nbsp;
+      <button class="waves-effect waves-light btn blue" name="action" value="HELP">Help</button>
+      <% } %>
+      </div>
       <div class="clear">
       </form></li>
     <% } else { %>
-      <li class="collection-item">&nbsp;</li>
+      <li class="collection-item">&nbsp;
+      <% if (entry.status == 1) { %>
+      <span class="secondary-content"><%= entry.TA.full_name %> is helping</span>
+      <% } %>
+      </li>
     <% }}); %>
   </ul>
-  <% if (!sawSelf) { %>
+  <% if (!sawSelf || (session && session.TA)) { %>
   <h6 class="center" style="font-size: 120%;">
+    <% if (session && session.TA) { %>
+    Add a student to the queue:
+    <% } else { %>
     Add your name to the queue:
+    <% } %>
   </h6>
   <form method="POST" class="row">
   <div class="input-field inline col l4 m6 s12">
@@ -30,9 +61,9 @@
   </div>
   <div class="input-field inline col l3 m6 s12">
     <input id="user_id" name="user_id" type="text" pattern="[A-Za-z0-9]*" minlength=3 maxlength=8 required
-    <% if (session) { %>
+    <% if (session && !session.TA) { %>
     value="<%= session.user_id %>"
-    <% if (session.authenticated) { %>
+    <% if (session.authenticated && !session.TA) { %>
     readonly="true"
     <% }} %>
     >

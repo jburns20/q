@@ -18,8 +18,10 @@ app.use(function(req, res, next) {
             next();
             return;
         }
-        model.Session.findOne({where: {session_key: req.cookies.auth}})
-               .then(function(user) {
+        model.Session.findOne({
+            where: {session_key: req.cookies.auth},
+            include: [{model: model.TA, as: "TA"}]
+        }).then(function(user) {
             req.session = user;
             next();
         });

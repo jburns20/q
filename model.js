@@ -50,7 +50,18 @@ exports.Topic = sequelize.define("topic", {
     underscored: true
 });
 
-exports.Session.hasMany(exports.Entry);
-exports.Topic.hasMany(exports.Entry);
-exports.TA.hasMany(exports.Entry);
-exports.TA.hasMany(exports.Session);
+exports.Entry.belongsTo(exports.Session);
+exports.Entry.belongsTo(exports.Topic);
+exports.Entry.belongsTo(exports.TA, {
+    as: "TA",
+    foreignKey: "ta_id"
+});
+exports.Session.belongsTo(exports.TA, {
+    as: "TA",
+    foreignKey: "ta_id"
+});
+exports.TA.belongsTo(exports.Entry, {
+    as: 'HelpingEntry',
+    foreignKey: 'helping_id',
+    constraints: false
+});

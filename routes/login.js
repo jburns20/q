@@ -25,6 +25,7 @@ exports.get_login = function(req, res) {
 exports.get_callback = function(req, res) {
     var userinfo = null;
     var key = crypto.randomBytes(72).toString('base64');
+    var ta = null;
     async.waterfall([
         function(callback) {
             oauth2Client.getToken(req.query.code, callback);
@@ -41,11 +42,19 @@ exports.get_callback = function(req, res) {
             });
         },
         function(callback) {
+            model.TA.findOne({where: {email: userinfo.email}})
+                    .then(function(result) {
+                ta = result;
+                callback(null);
+            });
+        },
+        function(callback) {
             model.Session.create({
                 "email": userinfo.email,
                 "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
                 "session_key": key,
-                "authenticated": true
+                "authenticated": true,
+                "ta_id": ta ? ta.id : null
             }).then(function() {
                 callback(null);
             });
