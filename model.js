@@ -8,6 +8,9 @@ var sequelize = new Sequelize(
 
 exports.sql = sequelize;
 
+
+// Tables
+
 exports.Session = sequelize.define("session", {
     "email": Sequelize.STRING,
     "user_id": Sequelize.STRING,
@@ -49,6 +52,16 @@ exports.Topic = sequelize.define("topic", {
 }, {
     underscored: true
 });
+
+exports.Option = sequelize.define("option", {
+    "key": {type: Sequelize.STRING, unique: true},
+    "value": Sequelize.STRING
+}, {
+    underscored: true
+});
+
+
+// Relationships
 
 exports.Entry.belongsTo(exports.Session);
 exports.Entry.belongsTo(exports.Topic);

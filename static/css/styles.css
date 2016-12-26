@@ -14,6 +14,15 @@ input {
     outline: 0px;
 }
 
+#message {
+    font-size: 120%;
+    margin: 20px 0;
+}
+
+#message_form {
+    display: none;
+}
+
 .collection {
     border: 0px;
     overflow: visible;

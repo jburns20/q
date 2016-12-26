@@ -2,6 +2,7 @@ var async = require('async');
 var crypto = require('crypto');
 
 var model = require("../model.js");
+var options = require("./options.js");
 var entries_cache = null;
 
 exports.get = function(req, res) {
@@ -13,6 +14,8 @@ exports.get = function(req, res) {
         res.clearCookie("toast");
     }
     var entries = [];
+    var frozen = false;
+    var message = "";
     async.waterfall([
         function(callback) {
             //don't re-query the database if nothing has changed
@@ -31,6 +34,18 @@ exports.get = function(req, res) {
                 entries_cache = results;
                 callback(null);
             });
+        },
+        function(callback) {
+            options.frozen(function(result) {
+                frozen = result;
+                callback(null);
+            });
+        },
+        function(callback) {
+            options.message(function(result) {
+                message = result;
+                callback(null);
+            });
         }
     ],
     function(error) {
@@ -38,6 +53,8 @@ exports.get = function(req, res) {
             title: "15-122 Office Hours Queue",
             session: req.session,
             entries: entries,
+            frozen: frozen,
+            message: message,
             toast: toast
         });
     });
@@ -65,25 +82,35 @@ function post_add(req, res) {
             if (!user_id || user_id.length < 3 || user_id.length > 8 
                     || !user_id.match("[A-Za-z0-9]*")
                     || (req.session && req.session.authenticated && !req.session.TA && req.session.user_id != user_id)) {
-                callback(new Error("Error: Invalid Andrew ID"));
+                callback(new Error("Invalid Andrew ID"));
                 return;
             }
             // A valid name is just any non-empty string.
             if (!name || name.length < 1) {
-                callback(new Error("Error: Invalid Name"));
+                callback(new Error("Invalid Name"));
                 return;
             }
             callback(null);
         },
         function(callback) {
-            // Check to make sure the user isn't already on the queue
+            // Make sure the user isn't already on the queue
             model.Entry.findOne({
                 where: {status: {lt: 2}, user_id: user_id},
             }).then(function(result) {
                 if (result) {
-                    callback(new Error("Error: You are already on the queue"));
+                    callback(new Error("You are already on the queue"));
                 } else {
                     callback(null);
+                }
+            });
+        },
+        function(callback) {
+            // Make sure the queue isn't frozen
+            options.frozen(function(frozen) {
+                if (!frozen || (req.session && req.session.TA)) {
+                    callback(null);
+                } else {
+                    callback(new Error("The queue is not accepting signups right now"));
                 }
             });
         },
@@ -121,7 +148,7 @@ function post_add(req, res) {
     ],
     function(error) {
         if (error) {
-            respond(req, res, error.message);
+            respond(req, res, "Error: " + error.message);
         }
     });
 }
@@ -134,7 +161,7 @@ function post_rem(req, res) {
             // Find the entry that should be removed
             model.Entry.findById(id).then(function(instance) {
                 if (!instance) {
-                    callback(new Error("Error: There is no entry with that ID"));
+                    callback(new Error("There is no entry with that ID"));
                 } else {
                     entry = instance;
                     callback(null);
@@ -152,7 +179,7 @@ function post_rem(req, res) {
                       || req.session.TA)) {
                 callback(null);
             } else {
-                callback(new Error("Error: You don't have permission to remove that entry"));
+                callback(new Error("You don't have permission to remove that entry"));
             }
         },
         function(callback) {
@@ -164,7 +191,7 @@ function post_rem(req, res) {
     ],
     function(error) {
         if (error) {
-            respond(req, res, error.message);
+            respond(req, res, "Error: " + error.message);
         }
     });
 }

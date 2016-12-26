@@ -4,6 +4,21 @@
 <body>
 <%- include("header.ejs") %>
 <div class="container">
+  <div id="message" class="center">
+  <% if (message) { %>
+  <%- message %>
+  <% if (session && session.TA) { %>
+  <a href="#" onclick="editMessage(); return false;" style="vertical-align: -0.2em;"><i class="material-icons">mode_edit</i></a>
+  <% } %>
+  <% } else if (session && session.TA) { %>
+  <a href="#" onclick="editMessage(); return false;">Add a message</a>
+  <% } %>
+  </div>
+  <form id="message_form" method='POST' action="/options" class='center input-field'>
+    <input type='text' style='width: 50%;' name="message" value='<%= message %>'>
+    <button class='btn-flat' onclick="cancelEditMessage(); return false;">Cancel</button>
+    <button class='btn waves-effect waves-light cyan'>Submit</button>
+  </form>
   <ul class="collection">
     <% var sawSelf = false; %>
     <% entries.forEach(function(entry) { %>
@@ -15,7 +30,7 @@
       <% if (entry.status == 1) { %>
       <span class="secondary-content"><%= entry.TA.full_name %> is helping</span>
       <% } else { %>
-      <button class="secondary-content waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2" name="action" value="REM">Remove</button>
+      <button class="secondary-content waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2 remove-button" name="action" value="REM">Remove</button>
       <% } %>
       <div class="clear">
       </form></li>
@@ -32,7 +47,7 @@
       <span><%= entry.TA.full_name %> is helping</span>
       <button class="waves-effect waves btn-flat grey lighten-2 black-text x-button" name="action" value="CANCEL">X</button>
       <% } else if (!session.TA.helping_id) { %>
-      <button class="waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2" name="action" value="REM">Remove</button>&nbsp;
+      <button class="waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2 remove-button" name="action" value="REM">Remove</button>&nbsp;
       <button class="waves-effect waves-light btn blue" name="action" value="HELP">Help</button>
       <% } %>
       </div>
@@ -46,7 +61,7 @@
       </li>
     <% }}); %>
   </ul>
-  <% if (!sawSelf || (session && session.TA)) { %>
+  <% if ((!sawSelf && !frozen) || (session && session.TA)) { %>
   <h6 class="center" style="font-size: 120%;">
     <% if (session && session.TA) { %>
     Add a student to the queue:
@@ -82,15 +97,55 @@
     <button class="waves-effect waves-light btn cyan" name="action" value="ADD">Enter</button>
   </div>
   </form>
+  <% } else if (frozen) { %>
+  <h6 class="center" style="font-size: 120%;">
+    The queue is <strong>frozen</strong>. No new signups are allowed.
+  </h6>
   <% } %>
 </div>
 <script type="text/javascript">
+
 $(document).ready(function() {
     $('select').material_select();
     <% if (toast) { %>
     Materialize.toast("<%= toast %>", 4000);
     <% } %>
+    $(".remove-button").click(function(event) {
+        if (!$(this).hasClass("confirming")) {
+            $(".confirming").each(function() {
+                $(this).removeClass("confirming red white-text")
+                    .addClass("grey lighten-3 grey-text text-darken-2")
+                    .text("Remove");
+            });
+            $(this).addClass("confirming red white-text")
+                .removeClass("grey lighten-3 grey-text text-darken-2")
+                .text("Are you sure?");
+            event.preventDefault();
+        }
+    });
+    $(document).click(function(event) {
+        if (!$(event.target).hasClass("remove-button")) {
+            $(".confirming").each(function() {
+                $(this).removeClass("confirming red white-text")
+                    .addClass("grey lighten-3 grey-text text-darken-2")
+                    .text("Remove");
+            });
+        }
+    });
 });
+
+function editMessage() {
+    $("#message").hide();
+    $("#message_form").show();
+    var len = $("#message_form input").val().length;
+    $("#message_form input").focus().get(0).setSelectionRange(len, len);
+}
+
+function cancelEditMessage() {
+    $("#message_form").hide();
+    $("#message").show();
+}
+
 </script>
 </body>
 </html>

@@ -6,6 +6,7 @@ var model = require("./model.js");
 
 var login = require("./routes/login.js");
 var home = require("./routes/home.js");
+var options = require("./routes/options.js");
 
 var app = express();
 app.set('view engine', 'ejs')
@@ -34,5 +35,8 @@ app.post("/", home.post);
 app.get("/login", login.get_login);
 app.get("/oauth2/callback", login.get_callback);
 app.get("/logout", login.get_logout);
+
+app.get("/options", options.get);
+app.post("/options", options.post);
 
 app.listen(config.server_port);

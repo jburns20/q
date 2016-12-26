@@ -4,8 +4,12 @@
     <ul class="hide-on-med-and-down">
       <li class="brand-logo" style="position: initial;"><%= title %></li>
       <% if (session && session.TA) { %>
-      <li style="margin-left: 10px;"><form method="POST">
-      <button class="waves-effect btn blue lighten-5 black-text" name="action" value="FREEZE">Freeze</button>
+      <li style="margin-left: 10px;"><form method="POST" action="/options">
+      <% if (frozen) { %>
+      <button class="waves-effect btn blue lighten-5 black-text" name="frozen" value="0">Unfreeze</button>
+      <% } else { %>
+      <button class="waves-effect btn blue lighten-5 black-text" name="frozen" value="1">Freeze</button>
+      <% } %>
       </form></li>
       <% } %>
     </ul>
@@ -21,10 +25,17 @@
     <ul id="nav-mobile" class="side-nav">
       <% if (session && session.authenticated) { %>
       <li class="cyan white-text" style="padding: 0px 20px;">Logged in as <%= session.user_id %></li>
-      <li><form method="POST">
-      <input type="hidden" name="action" value="FREEZE">
+      <% if (session.TA) { %>
+      <li><form method="POST" action="/options">
+      <% if (frozen) { %>
+      <input type="hidden" name="frozen" value="0">
+      <a class="waves-effect" onclick="$(this).closest('form').submit();">Unfreeze Queue</a>
+      <% } else { %>
+      <input type="hidden" name="frozen" value="1">
       <a class="waves-effect" onclick="$(this).closest('form').submit();">Freeze Queue</a>
+      <% } %>
       </form></li>
+      <% } %>
       <li><a href="/logout">Log Out</a></li>
       <% } else { %>
       <li><a class="waves-effect" href="/login">Log In</a></li>
