@@ -12,6 +12,7 @@ exports.sql = sequelize;
 // Tables
 
 exports.Session = sequelize.define("session", {
+    "name": Sequelize.STRING,
     "email": Sequelize.STRING,
     "user_id": Sequelize.STRING,
     "session_key": Sequelize.STRING,

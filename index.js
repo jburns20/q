@@ -1,14 +1,18 @@
+var http = require('http');
 var express = require('express');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var config = require("./config.json");
 var model = require("./model.js");
+var realtime = require("./realtime.js");
 
 var login = require("./routes/login.js");
 var home = require("./routes/home.js");
 var options = require("./routes/options.js");
 
 var app = express();
+var server = http.Server(app);
+realtime.init(server);
 app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({"extended": false}));
 app.use(cookieParser());
@@ -39,4 +43,4 @@ app.get("/logout", login.get_logout);
 app.get("/options", options.get);
 app.post("/options", options.post);
 
-app.listen(config.server_port);
+server.listen(config.server_port);

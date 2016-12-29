@@ -2,6 +2,7 @@ var async = require('async');
 var crypto = require('crypto');
 
 var model = require("../model.js");
+var realtime = require("../realtime.js");
 var options = require("./options.js");
 var entries_cache = null;
 
@@ -53,6 +54,7 @@ exports.get = function(req, res) {
             title: "15-122 Office Hours Queue",
             session: req.session,
             entries: entries,
+            seq: realtime.seq,
             frozen: frozen,
             message: message,
             toast: toast
@@ -120,12 +122,20 @@ function post_add(req, res) {
             if (!req.session || (!req.session.TA && req.session.user_id != user_id)) {
                 var key = crypto.randomBytes(72).toString('base64');
                 model.Session.create({
+                    name: name,
                     user_id: user_id,
                     session_key: key,
                     authenticated: false
                 }).then(function(instance) {
                     req.session = instance;
                     res.cookie("auth", key);
+                    callback(null);
+                });
+            } else if (req.session && !req.session.TA) {
+                req.session.update({
+                    name: name
+                }).then(function(instance) {
+                    req.session = instance;
                     callback(null);
                 });
             } else {
@@ -142,6 +152,7 @@ function post_add(req, res) {
                 session_id: req.session.TA ? null : req.session.id
             }).then(function(instance) {
                 entries_cache = null;
+                realtime.add(instance);
                 respond(req, res, "Entered the queue");
             });
         }
@@ -184,6 +195,7 @@ function post_rem(req, res) {
         },
         function(callback) {
             entry.destroy().then(function() {
+                realtime.remove(entry.id);
                 entries_cache = null;
                 respond(req, res, "Entry removed");
             });
@@ -226,6 +238,7 @@ function post_help(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
+        realtime.help(id, req.session.TA);
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
@@ -234,11 +247,11 @@ function post_help(req, res) {
 
 function post_cancel(req, res) {
     var id = req.body.entry_id;
+    var ta = null;
     model.sql.transaction(function(t) {
         if (!req.session || !req.session.TA) {
             throw new Error("You don't have permission to cancel helping that student");
         }
-        var ta = null;
         return model.Entry.findById(id, {
             include: [{model: model.TA, as: "TA"}],
             transaction: t
@@ -259,6 +272,7 @@ function post_cancel(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
+        realtime.cancel(id, ta.id);
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
@@ -267,13 +281,13 @@ function post_cancel(req, res) {
 
 function post_done(req, res) {
     var id = req.body.entry_id;
+    var ta = null;
     var message = null;
     var duration;
     model.sql.transaction(function(t) {
         if (!req.session || !req.session.TA) {
             throw new Error("You don't have permission to finish helping that student");
         }
-        var ta = null;
         return model.Entry.findById(id, {
             include: [{model: model.TA, as: "TA"}],
             transaction: t
@@ -305,6 +319,7 @@ function post_done(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
+        realtime.done(id, ta.id);
         respond(req, res, message);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
