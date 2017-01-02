@@ -15,12 +15,49 @@ input {
 }
 
 #message {
-    font-size: 120%;
     margin: 20px 0;
+}
+
+#message_content {
+    font-size: 120%;
 }
 
 #message_form {
     display: none;
+}
+
+#queue_container {
+    position: relative;
+}
+
+#status {
+    font-size: 120%;
+    text-align: center;
+    margin: 0px 10px;
+}
+
+#status.overlay {
+    position: absolute;
+    background: rgba(238,238,238,0.85);
+    left: 2em;
+    right: 18em;
+    z-index: 1;
+    border-radius: 10px;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);
+    margin: 0px;
+    padding: 1em;
+    min-height: 3.2em;
+}
+
+#status.overlay .inner {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+#status.overlay .inner div {
+    display: table-cell;
+    vertical-align: middle;
 }
 
 .collection {
@@ -48,8 +85,16 @@ input {
     padding: 10px 30px;
 }
 
-.collection .collection-item.me * {
+.primary-content {
+    float: left;
+}
+
+@media only screen and (min-width: 801px) {
+.primary-content div {
+    float: left;
     line-height: 36px;
+    width: 200px;
+}
 }
 
 .btn-flat.x-button {

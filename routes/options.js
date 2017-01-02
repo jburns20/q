@@ -1,5 +1,6 @@
 var striptags = require("striptags");
 
+var realtime = require("../realtime.js");
 var model = require("../model.js");
 
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><ul><br><hr>";
@@ -71,7 +72,7 @@ exports.get = function(req, res) {
             res.send(message);
         });
     } else {
-        res.send(404);
+        res.sendStatus(404);
     }
 };
 
@@ -104,8 +105,10 @@ exports.post = function(req, res) {
         }).then(function(row) {
             frozen_cache = null;
             if (req.body.frozen == "1" && !prev_frozen) {
+                realtime.frozen(true);
                 return Promise.resolve("Queue frozen");
             } else if (req.body.frozen == "0" && prev_frozen) {
+                realtime.frozen(false);
                 return Promise.resolve("Queue unfrozen");
             } else {
                 return Promise.resolve(null);
@@ -121,6 +124,7 @@ exports.post = function(req, res) {
             value: message
         }).then(function(row) {
             message_cache = null;
+            realtime.message(message);
             if (message == "") {
                 return Promise.resolve("Message removed");
             } else {

@@ -31,8 +31,7 @@ exports.init = function(app) {
             });
         });
     });
-    
-}
+};
 
 exports.add = function(entry) {
     exports.seq = exports.seq + 1;
@@ -53,7 +52,7 @@ exports.add = function(entry) {
         id: entry.id,
         data: entry
     });
-}
+};
 
 exports.remove = function(entry_id) {
     exports.seq = exports.seq + 1;
@@ -65,7 +64,7 @@ exports.remove = function(entry_id) {
         seq: exports.seq,
         id: entry_id
     });
-}
+};
 
 exports.help = function(entry_id, ta) {
     exports.seq = exports.seq + 1;
@@ -81,7 +80,7 @@ exports.help = function(entry_id, ta) {
             ta_full_name: ta.full_name
         }
     });
-}
+};
 
 exports.cancel = function(entry_id, ta_id) {
     exports.seq = exports.seq + 1;
@@ -96,7 +95,7 @@ exports.cancel = function(entry_id, ta_id) {
             ta_id: ta_id
         }
     });
-}
+};
 
 exports.done = function(entry_id, ta_id) {
     exports.seq = exports.seq + 1;
@@ -104,11 +103,35 @@ exports.done = function(entry_id, ta_id) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    sio.emit("remove", {
+    sio.emit("done", {
         seq: exports.seq,
         id: entry_id,
         data: {
             ta_id: ta_id
         }
     });
-}
+};
+
+exports.frozen = function(value) {
+    exports.seq = exports.seq + 1;
+    if (!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.emit("frozen", {
+        seq: exports.seq,
+        value: value
+    });
+};
+
+exports.message = function(content) {
+    exports.seq = exports.seq + 1;
+    if (!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.emit("message", {
+        seq: exports.seq,
+        content: content
+    });
+};
