@@ -4,7 +4,9 @@ var crypto = require('crypto');
 var model = require("../model.js");
 var realtime = require("../realtime.js");
 var options = require("./options.js");
+
 var entries_cache = null;
+var topics_cache = null;
 
 exports.get = function(req, res) {
     // If we need to display a toast on this request, it'll be in a cookie.
@@ -15,24 +17,37 @@ exports.get = function(req, res) {
         res.clearCookie("toast");
     }
     var entries = [];
+    var topics = [];
     var frozen = false;
     var message = "";
     async.waterfall([
         function(callback) {
             //don't re-query the database if nothing has changed
-            if (entries_cache) {
+            if (entries_cache && topics_cache) {
                 entries = entries_cache;
+                topics = topics_cache;
                 callback(null);
                 return;
             }
             //our cache is out-of-date (or doesn't exist), query the database
             model.Entry.findAll({
                 where: {status: {lt: 2}},
-                include: [{model: model.TA, as: "TA"}],
+                include: [{model: model.TA, as: "TA"},
+                          {model: model.Topic}],
                 order: [['entry_time', 'ASC']]
             }).then(function(results) {
                 entries = results;
                 entries_cache = results;
+                return model.Topic.findAll({
+                    where: {
+                        out_date: {lt: new Date()},
+                        due_date: {gt: new Date()}
+                    },
+                    order: [['due_date', 'ASC']]
+                });
+            }).then(function(results) {
+                topics = results;
+                topics_cache = results;
                 callback(null);
             });
         },
@@ -54,6 +69,7 @@ exports.get = function(req, res) {
             title: "15-122 Office Hours Queue",
             session: req.session,
             entries: entries,
+            topics: topics,
             seq: realtime.seq,
             frozen: frozen,
             message: message,
@@ -76,6 +92,8 @@ function respond(req, res, message, data) {
 function post_add(req, res) {
     var name = req.body.name;
     var user_id = req.body.user_id;
+    var topic_id = req.body.topic_id;
+    var topic = null;
     async.waterfall([
         function(callback) {
             // A valid user ID is between 3 and 8 alphanumeric characters, and
@@ -100,10 +118,22 @@ function post_add(req, res) {
                 where: {status: {lt: 2}, user_id: user_id},
             }).then(function(result) {
                 if (result) {
-                    callback(new Error("You are already on the queue"));
+                    throw new Error("You are already on the queue");
                 } else {
+                    return model.Topic.findById(topic_id);
+                }
+            }).then(function(result) {
+                if (result == null && topic_id == 0) {
+                    topic_id = null;
+                    callback(null);
+                } else if (result == null || result.out_date > new Date() || result.due_date < new Date()) {
+                    throw new Error("Please choose a topic from the list.");
+                } else {
+                    topic = result;
                     callback(null);
                 }
+            }).catch(function(error) {
+                callback(error);
             });
         },
         function(callback) {
@@ -149,9 +179,11 @@ function post_add(req, res) {
                 name: name,
                 entry_time: new Date(),
                 status: 0,
-                session_id: req.session.TA ? null : req.session.id
+                session_id: req.session.TA ? null : req.session.id,
+                topic_id: topic_id
             }).then(function(instance) {
                 entries_cache = null;
+                instance.topic = topic
                 realtime.add(instance);
                 respond(req, res, "Entered the queue");
             });

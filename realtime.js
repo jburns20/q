@@ -39,8 +39,6 @@ exports.add = function(entry) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    entry.ta_id = entry.TA ? entry.TA.id : null;
-    entry.ta_full_name = entry.TA ? entry.TA.full_name : null;
     sio.to(student_room).emit("add", {
         seq: exports.seq,
         id: entry.id,
@@ -50,7 +48,15 @@ exports.add = function(entry) {
     sio.to(ta_room).emit("add", {
         seq: exports.seq,
         id: entry.id,
-        data: entry
+        data: {
+            id: entry.id,
+            status: entry.status,
+            name: entry.name,
+            user_id: entry.user_id,
+            ta_id: entry.TA ? entry.TA.id : null,
+            topic_name: entry.topic ? entry.topic.name : "other",
+            ta_full_name: entry.TA ? entry.TA.full_name : null
+        }
     });
 };
 

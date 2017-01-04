@@ -57,14 +57,14 @@ function cancelEditMessage() {
 }
 
 
-//REQUIRED FIELDS: id, status, name, user_id, ta_id, ta_full_name
+//REQUIRED FIELDS: id, status, name, user_id, ta_id, topic_name, ta_full_name
 function buildTAEntry(entry) {
     var elt = $(entryHtml);
     elt.data("entryId", entry.id);
     elt.find(".id-input").val(entry.id);
     elt.find(".primary-content").html(
         "<div>" + entry.name + " (" + entry.user_id + ")</div>"
-      + "<div>topic</div>"
+      + "<div>" + entry.topic_name + "</div>"
     );
     
     if (entry.status == 1 && ta_id == entry.ta_id) {
@@ -79,7 +79,7 @@ function buildTAEntry(entry) {
     return elt;
 }
 
-//REQUIRED FIELDS: id, status, name, user_id, ta_full_name
+//REQUIRED FIELDS: id, status, name, user_id, topic_name, ta_full_name
 function buildMyEntry(entry) {
     var elt = $(entryHtml);
     elt.addClass("me");
@@ -87,7 +87,7 @@ function buildMyEntry(entry) {
     elt.find(".id-input").val(entry.id);
     elt.find(".primary-content").html(
         "<div>" + entry.name + " (" + entry.user_id + ")</div>"
-      + "<div>topic</div>"
+      + "<div>" + entry.topic_name + "</div>"
     );
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");

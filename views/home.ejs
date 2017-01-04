@@ -62,11 +62,12 @@
     <label for="user_id">Andrew ID</label>
   </div>
   <div class="input-field inline col l3 m6 s12">
-    <select novalidate id="topic" name="topic">
-      <option value="" disabled selected hidden>Choose a topic</option>
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-      <option value="3">Option 3</option>
+    <select novalidate id="topic" name="topic_id">
+        <option value="" disabled selected hidden>Choose a topic</option>
+      <%_ topics.forEach(function(topic) { _%>
+        <option value="<%= topic.id %>"><%= topic.name %></option>
+      <%_ }); _%>
+        <option value="0">other</option>
     </select>
     <label for="topic">What would you like help with?</label>
   </div>
@@ -107,6 +108,7 @@ $(document).ready(function() {
         status: entry.status,
         name: entry.name,
         user_id: entry.user_id,
+        topic_name: entry.topic ? entry.topic.name : "other",
         ta_full_name: entry.TA ? entry.TA.full_name : ""
     }); %>));
   <%_ } else if (session && session.TA) { _%>
@@ -116,6 +118,7 @@ $(document).ready(function() {
         name: entry.name,
         user_id: entry.user_id,
         ta_id: entry.TA ? entry.TA.id : null,
+        topic_name: entry.topic ? entry.topic.name : "other",
         ta_full_name: entry.TA ? entry.TA.full_name : ""
     }); %>));
   <%_ } else { _%>
