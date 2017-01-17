@@ -3,6 +3,7 @@ var crypto = require('crypto');
 
 var model = require("../model.js");
 var realtime = require("../realtime.js");
+var waittimes = require("../waittimes.js");
 var options = require("./options.js");
 
 var entries_cache = null;
@@ -73,6 +74,7 @@ exports.get = function(req, res) {
             seq: realtime.seq,
             frozen: frozen,
             message: message,
+            waittimes: waittimes.get(),
             toast: toast
         });
     });
@@ -174,10 +176,16 @@ function post_add(req, res) {
         },
         function(callback) {
             // Finally, add the entry to the queue
+            var times = waittimes.get();
+            var estimate = null;
+            if (times.length > 0) {
+                estimate = times[times.length-1];
+            }
             model.Entry.create({
                 user_id: user_id,
                 name: name,
                 entry_time: new Date(),
+                wait_estimate: estimate,
                 status: 0,
                 session_id: req.session.TA ? null : req.session.id,
                 topic_id: topic_id
@@ -185,6 +193,8 @@ function post_add(req, res) {
                 entries_cache = null;
                 instance.topic = topic
                 realtime.add(instance);
+                return waittimes.update();
+            }).then(function(waittimes) {
                 respond(req, res, "Entered the queue");
             });
         }
@@ -229,6 +239,8 @@ function post_rem(req, res) {
             entry.destroy().then(function() {
                 realtime.remove(entry.id);
                 entries_cache = null;
+                return waittimes.update();
+            }).then(function(waittimes) {
                 respond(req, res, "Entry removed");
             });
         }
@@ -264,13 +276,23 @@ function post_help(req, res) {
                 ta_id: req.session.TA.id
             }, {transaction: t});
         }).then(function() {
+            var num_today = req.session.TA.num_today;
+            var time_today = req.session.TA.time_today;
+            if (new Date() - req.session.TA.updated_at > 1000*60*60*12) {
+                num_today = 0;
+                time_today = 0;
+            }
             return req.session.TA.update({
-                helping_id: id
+                helping_id: id,
+                num_today: num_today,
+                time_today: time_today
             }, {transaction: t});
         })
     }).then(function(result) {
         entries_cache = null;
         realtime.help(id, req.session.TA);
+        return waittimes.update();
+    }).then(function(waittimes) {
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
@@ -305,6 +327,8 @@ function post_cancel(req, res) {
     }).then(function(result) {
         entries_cache = null;
         realtime.cancel(id, ta.id);
+        return waittimes.update();
+    }).then(function(waittimes) {
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
@@ -352,6 +376,8 @@ function post_done(req, res) {
     }).then(function(result) {
         entries_cache = null;
         realtime.done(id, ta.id);
+        return waittimes.update();
+    }).then(function(waittimes) {
         respond(req, res, message);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);

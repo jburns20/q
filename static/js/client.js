@@ -132,21 +132,33 @@ function positionOverlay() {
 
 function updateStatus() {
     var me = $("#queue").find(".me");
+    var statushtml = "";
     if (me.length > 0) {
         var ahead = me.prevAll().length;
-        if (ahead == 1) {
-            $("#status_content").text("There is 1 student ahead of you.");
+        if (ahead == 0) {
+            statushtml += "You're currently first in the queue.";
+        } else if (ahead == 1) {
+            statushtml += "There is 1 student ahead of you.";
         } else {
-            $("#status_content").text("There are " + ahead + " students ahead of you.");
+            statushtml += "There are " + ahead + " students ahead of you.";
+        }
+        if (me.index() < waittimes.length) {
+            statushtml += "<br>Your estimated wait time is " + Math.ceil(waittimes[me.index()]/60) + " minutes.";
         }
     } else {
         var ahead = $("#queue").children().length;
-        if (ahead == 1) {
-            $("#status_content").text("There is 1 student waiting.");
+        if (ahead == 0) {
+            statushtml += "There are no students waiting.";
+        } else if (ahead == 1) {
+            statushtml += "There is 1 student waiting.";
         } else {
-            $("#status_content").text("There are " + ahead + " students waiting.");
+            statushtml += "There are " + ahead + " students waiting.";
+        }
+        if (waittimes.length == ahead+1) {
+            statushtml += "<br>The estimated wait time is " + Math.ceil(waittimes[ahead]/60) + " minutes.";
         }
     }
+    $("#status_content").html(statushtml);
     $("#num_ahead").text(ahead);
 }
 
@@ -232,8 +244,6 @@ socket.on("help", function(message) {
 });
 
 socket.on("cancel", function(message) {
-    console.log("cancelling: ");
-    console.log(message);
     if (message.seq != seq + 1) {
         window.location.reload();
         return;
@@ -309,5 +319,16 @@ socket.on("message", function(message) {
         return;
     }
     $("#message_content").html(message.content);
+    seq = message.seq;
+});
+
+socket.on("waittimes", function(message) {
+    if (message.seq != seq + 1) {
+        window.location.reload();
+        return;
+    }
+    console.log("Got wait times: " + message.times);
+    waittimes = message.times;
+    updateStatus();
     seq = message.seq;
 });

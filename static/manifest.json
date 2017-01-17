@@ -1,0 +1,12 @@
+{
+    "short_name": "122 Queue",
+    "name": "15-122 Office Hours Queue",
+    "icons": [
+        {
+            "src": "/img/cmuq_small.png",
+            "type": "image/png",
+            "sizes": "144x144"
+        }
+    ],
+    "start_url": "/"
+}

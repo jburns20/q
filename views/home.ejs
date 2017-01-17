@@ -93,6 +93,7 @@ var ta_helping_id = <%= session.TA.helping_id ? session.TA.helping_id : "null" %
 var ta_id = null;
 var ta_helping_id = null;
 <%_ } _%>
+var waittimes = <%- JSON.stringify(waittimes); -%>;
 
 $(document).ready(function() {
   <%_ if (toast) { _%>
@@ -127,7 +128,9 @@ $(document).ready(function() {
         status: entry.status,
         ta_full_name: entry.TA ? entry.TA.full_name : ""
     }); %>));
-  <%_ }}); _%>
+  <%_ } _%>
+<%_ }); _%>
+
   <%_ if ((sawSelf || frozen) && !(session && session.TA)) { _%>
     $("#add_form").hide();
   <%_ } _%>

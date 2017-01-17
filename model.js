@@ -15,7 +15,7 @@ exports.Session = sequelize.define("session", {
     "name": Sequelize.STRING,
     "email": Sequelize.STRING,
     "user_id": Sequelize.STRING,
-    "session_key": Sequelize.STRING,
+    "session_key": {type: Sequelize.STRING, unique: true},
     "authenticated": Sequelize.BOOLEAN
 }, {
     underscored: true
@@ -23,7 +23,6 @@ exports.Session = sequelize.define("session", {
 
 exports.TA = sequelize.define("tas", {
     "email": Sequelize.STRING,
-    "first_name": Sequelize.STRING,
     "full_name": Sequelize.STRING,
     "time_helped": Sequelize.INTEGER,
     "num_helped": Sequelize.INTEGER,
@@ -40,6 +39,7 @@ exports.Entry = sequelize.define("entry", {
     "entry_time": Sequelize.DATE,
     "help_time": Sequelize.DATE,
     "exit_time": Sequelize.DATE,
+    "wait_estimate": Sequelize.INTEGER,
     "status": Sequelize.INTEGER  //0: on queue, 1: being helped, 2: helped
 }, {
     timestamps: false,
@@ -76,7 +76,7 @@ exports.Session.belongsTo(exports.TA, {
     foreignKey: "ta_id"
 });
 exports.TA.belongsTo(exports.Entry, {
-    as: 'HelpingEntry',
+    as: 'helping_entry',
     foreignKey: 'helping_id',
     constraints: false
 });

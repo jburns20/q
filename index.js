@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var config = require("./config.json");
 var model = require("./model.js");
 var realtime = require("./realtime.js");
+var waittimes = require("./waittimes.js");
 
 var login = require("./routes/login.js");
 var home = require("./routes/home.js");
@@ -13,6 +14,7 @@ var options = require("./routes/options.js");
 var app = express();
 var server = http.Server(app);
 realtime.init(server);
+waittimes.init();
 app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({"extended": false}));
 app.use(cookieParser());

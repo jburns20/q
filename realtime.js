@@ -141,3 +141,15 @@ exports.message = function(content) {
         content: content
     });
 };
+
+exports.waittimes = function(times) {
+    exports.seq = exports.seq + 1;
+    if (!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.emit("waittimes", {
+        seq: exports.seq,
+        times: times
+    });
+}
