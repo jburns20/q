@@ -14,7 +14,9 @@
        "mysql_pass": "<Password for the MySQL user>",
    
        "google_id": "<Google Client ID from https://console.developers.google.com>",
-       "google_key": "<Google Client Secret from https://console.developers.google.com>"
+       "google_secret": "<Google Client Secret from https://console.developers.google.com>",
+       
+       "slack_webhook": "<URL of the Slack Incoming Webhook to send notifications>"
    }
    ```
 4. Run this command in your terminal:

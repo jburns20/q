@@ -1,8 +1,22 @@
+var SlackWebhook = require("slack-webhook");
+
+var config = require("./config.json");
 var model = require("./model.js");
 var realtime = require("./realtime.js");
 
 var last_updated = new Date(0);
 var wait_times_cache = [];
+
+const extra_time = 1; //minutes (time TAs spend between helping students)
+const wait_threshold = 30; //minutes (wait time that's considered "too long")
+const time_threshold = 15; //minutes (how long the wait time must be that high to notify)
+var earliest_exceeded = null;
+var slack = new SlackWebhook(config.slack_webhook, {
+    defaults: {
+        "username": "QueueBot",
+        "icon_url": "https://q.15122.tk/img/cmuq_small.png"
+    }
+});
 
 exports.init = function() {
     exports.update().then(function(result) {
@@ -59,7 +73,7 @@ exports.update = function() {
             }
             if (ta.helping_entry) {
                 ta_times[ta.id] = ta.helping_entry.help_time;
-                var seconds = ta_times[ta.id].getSeconds() + ta_averages[ta.id];
+                var seconds = ta_times[ta.id].getSeconds() + ta_averages[ta.id] + extra_time * 60;
                 ta_times[ta.id].setSeconds(seconds);
                 if (ta_times[ta.id] < now) {
                     ta_times[ta.id] = new Date(now.getTime());
@@ -84,7 +98,7 @@ exports.update = function() {
                     }
                 }
                 wait_times.push((min_time - now) / 1000);
-                var seconds = ta_times[min_id].getSeconds() + ta_averages[min_id];
+                var seconds = ta_times[min_id].getSeconds() + ta_averages[min_id] + extra_time * 60;
                 ta_times[min_id].setSeconds(seconds);
             }
         });
@@ -98,7 +112,17 @@ exports.update = function() {
                 min_id = id;
             }
         }
-        wait_times.push((min_time - now) / 1000);
+        var last_wait = (min_time - now) / 1000;
+        wait_times.push(last_wait);
+        if (last_wait >= wait_threshold * 60 && earliest_exceeded == null) {
+            earliest_exceeded = now;
+        } else if (last_wait < wait_threshold * 60) {
+            earliest_exceeded = null;
+        }
+        if (earliest_exceeded && now - earliest_exceeded >= time_threshold * 60 * 1000) {
+            slack.send("The wait time is *" + Math.ceil(last_wait / 60) + " minutes* right now. More TAs might be needed. (<https://q.15122.tk/|view»>)");
+            earliest_exceeded = null;
+        }
         
         wait_times_cache = wait_times;
         last_updated = now;

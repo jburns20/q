@@ -143,7 +143,11 @@ function updateStatus() {
             statushtml += "There are " + ahead + " students ahead of you.";
         }
         if (me.index() < waittimes.length) {
-            statushtml += "<br>Your estimated wait time is " + Math.ceil(waittimes[me.index()]/60) + " minutes.";
+            var time = Math.ceil(waittimes[me.index()]/60);
+            if (time < 3) {
+                time = "less than 3";
+            }
+            statushtml += "<br>Your estimated wait time is " +  + " minutes.";
         }
     } else {
         var ahead = $("#queue").children().length;
@@ -155,7 +159,11 @@ function updateStatus() {
             statushtml += "There are " + ahead + " students waiting.";
         }
         if (waittimes.length == ahead+1) {
-            statushtml += "<br>The estimated wait time is " + Math.ceil(waittimes[ahead]/60) + " minutes.";
+            var time = Math.ceil(waittimes[ahead]/60);
+            if (time < 3) {
+                time = "less than 3";
+            }
+            statushtml += "<br>The estimated wait time is " + time + " minutes.";
         }
     }
     $("#status_content").html(statushtml);

@@ -7,7 +7,7 @@ var config = require("../config.json");
 var model = require("../model.js");
 
 var oauth2Client = new OAuth2(config.google_id, config.google_secret,
-  "http://q.15122.tk/oauth2/callback"
+  "https://q.15122.tk/oauth2/callback"
 );
 var auth_url = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"],

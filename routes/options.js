@@ -3,7 +3,7 @@ var striptags = require("striptags");
 var realtime = require("../realtime.js");
 var model = require("../model.js");
 
-var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><ul><br><hr>";
+var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
 var frozen_cache = null;
 

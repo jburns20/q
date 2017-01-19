@@ -93,7 +93,7 @@ function respond(req, res, message, data) {
 
 function post_add(req, res) {
     var name = req.body.name;
-    var user_id = req.body.user_id;
+    var user_id = req.body.user_id.toLowerCase();
     var topic_id = req.body.topic_id;
     var topic = null;
     async.waterfall([
