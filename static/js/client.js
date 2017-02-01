@@ -41,6 +41,12 @@ $(document).ready(function() {
     });
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
+    // notification permission request
+    if (!("Notification" in window)) {
+        console.log("This browser does not support desktop notification");
+    } else if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
 });
 
 
@@ -194,6 +200,10 @@ $(document).on("submit", "form", function(event) {
 });
 
 socket.on("add", function(message) {
+    // notification on add
+    if ( ("Notification" in window) && (Notification.permission == "granted") )
+        var notification = new Notification("New 15-122 Question");
+    }
     if (message.seq != seq + 1) {
         window.location.reload();
         return;
