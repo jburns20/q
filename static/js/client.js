@@ -201,7 +201,7 @@ $(document).on("submit", "form", function(event) {
 
 socket.on("add", function(message) {
     // notification on add
-    if ( ("Notification" in window) && (Notification.permission == "granted") )
+    if ( ("Notification" in window) && (Notification.permission == "granted") ) {
         var notification = new Notification("New 15-122 Question");
     }
     if (message.seq != seq + 1) {
