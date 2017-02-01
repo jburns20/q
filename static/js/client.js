@@ -41,12 +41,6 @@ $(document).ready(function() {
     });
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
-    // notification permission request
-    if (!("Notification" in window)) {
-        console.log("This browser does not support desktop notification");
-    } else if (Notification.permission !== "granted") {
-        Notification.requestPermission();
-    }
 });
 
 
@@ -194,15 +188,27 @@ function getCookie(cname) {
 var socket = io();
 socket.on("connect", function () {
     socket.emit("authenticate", unescape(getCookie("auth")));
+    if (ta_id) {
+        // notification permission request on connect if is ta
+        if (!("Notification" in window)) {
+            console.log("This browser does not support desktop notification");
+        } else if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+    }
 });
 $(document).on("submit", "form", function(event) {
     socket.disconnect();
 });
 
 socket.on("add", function(message) {
-    // notification on add
-    if ( ("Notification" in window) && (Notification.permission == "granted") ) {
-        var notification = new Notification("New 15-122 Question");
+    // notification on add for ta
+    if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
+        var notification = new Notification("New 15-122 Question", 
+            {"body": "Name: " + message.data.name + "\n" +
+                     "andrewID: " + message.data.user_id + "\n" +
+                     "Topic: " + message.data.topic_name
+            });
     }
     if (message.seq != seq + 1) {
         window.location.reload();
