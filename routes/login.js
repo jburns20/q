@@ -13,10 +13,15 @@ var auth_url = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"],
   hd: "andrew.cmu.edu"
 });
+var auth_url_nodomaincheck = oauth2Client.generateAuthUrl({
+  scope: ["profile", "email"]
+});
 
 exports.get_login = function(req, res) {
     if (req.session && req.session.authenticated) {
         res.redirect("/");
+    } else if (req.query.domaincheck == 0) {
+        res.redirect(auth_url_nodomaincheck);
     } else {
         res.redirect(auth_url);
     }
