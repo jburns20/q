@@ -8,6 +8,7 @@
    ```
    {
        "title": "15-122 Office Hours Queue",
+       "domain": "q.15122.tk",
        "timezone": "America/New_York",
        "server_port": 80,
    
