@@ -7,6 +7,8 @@
 3. In the root directory, create the file `config.json` with the following structure:
    ```
    {
+       "title": "15-122 Office Hours Queue",
+       "timezone": "America/New_York",
        "server_port": 80,
    
        "mysql_db": "<Your MySQL database>",

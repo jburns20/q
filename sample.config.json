@@ -1,0 +1,14 @@
+{
+    "title": "15-122 Office Hours Queue",
+    "timezone": "America/New_York",
+    "server_port": 15122,
+
+    "mysql_db": "queue",
+    "mysql_user": "queue",
+    "mysql_pass": "<Password for the MySQL user>",
+
+    "google_id": "<Google Client ID from https://console.developers.google.com>",
+    "google_secret": "<Google Client Secret from https://console.developers.google.com>",
+    
+    "slack_webhook": "<URL of the Slack Incoming Webhook to send notifications>"
+}

@@ -1,8 +1,10 @@
+var config = require("./config.json");
+process.env.TZ = config.timezone;
+
 var http = require('http');
 var express = require('express');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
-var config = require("./config.json");
 var model = require("./model.js");
 var realtime = require("./realtime.js");
 var waittimes = require("./waittimes.js");

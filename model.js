@@ -3,7 +3,8 @@ var config = require("./config.json");
 var sequelize = new Sequelize(
     config.mysql_db, config.mysql_user, config.mysql_pass, {
     logging: false,
-    underscored: true
+    underscored: true,
+    timezone: config.timezone
 });
 
 exports.sql = sequelize;

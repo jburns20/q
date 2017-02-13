@@ -1,6 +1,7 @@
 var async = require('async');
 var crypto = require('crypto');
 
+var config = require("../config.json");
 var model = require("../model.js");
 var realtime = require("../realtime.js");
 var waittimes = require("../waittimes.js");
@@ -67,7 +68,7 @@ exports.get = function(req, res) {
     ],
     function(error) {
         res.render("home", {
-            title: "15-122 Office Hours Queue",
+            title: config.title,
             session: req.session,
             entries: entries,
             topics: topics,
