@@ -34,3 +34,7 @@ This part is up to you. If port 80 is already being used (for another web server
 node index.js
 ```
 You can also use [pm2](http://pm2.keymetrics.io/) to manage the server process to ensure that it's always running.
+
+## Add your information
+
+There is no UI for managing TAs or topics yet, so you'll need to add these items in the `tas` and `topics` tables of the database manually.
