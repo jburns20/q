@@ -1,5 +1,11 @@
+html {
+    min-height: 100%;
+    position: relative;
+}
+
 body {
     background-color: #EEE;
+    margin-bottom: 3em;
 }
 
 nav .brand-logo {
@@ -102,6 +108,17 @@ input {
     padding-right: 10px;
     height: 24px;
     line-height: 24px;
+}
+
+.attribution {
+    margin: 0px;
+    text-align: center;
+    font-size: 8pt;
+    color: #666;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    padding: 0.5em;
 }
 
 .clear {

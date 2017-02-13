@@ -65,7 +65,7 @@ exports.get_callback = function(req, res) {
             });
         },
         function(callback) {
-            res.cookie("auth", key);
+            res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
             res.redirect("/");
         }
     ], function(error) {
