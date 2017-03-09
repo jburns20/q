@@ -147,7 +147,7 @@ function updateStatus() {
             if (time < 3) {
                 time = "less than 3";
             }
-            statushtml += "<br>Your estimated wait time is " +  + " minutes.";
+            statushtml += "<br>Your estimated wait time is " + time + " minutes.";
         }
     } else {
         var ahead = $("#queue").children().length;

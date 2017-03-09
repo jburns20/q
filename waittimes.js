@@ -120,7 +120,7 @@ exports.update = function() {
             earliest_exceeded = null;
         }
         if (earliest_exceeded && now - earliest_exceeded >= time_threshold * 60 * 1000) {
-            slack.send("The wait time is *" + Math.ceil(last_wait / 60) + " minutes* right now. More TAs might be needed. (<https://" + config.domain + "/|view»>)");
+            slack.send("@channel The wait time is *" + Math.ceil(last_wait / 60) + " minutes* right now. More TAs might be needed. (<https://" + config.domain + "/|view»>)");
             earliest_exceeded = null;
         }
         
