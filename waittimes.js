@@ -11,12 +11,15 @@ const extra_time = 1; //minutes (time TAs spend between helping students)
 const wait_threshold = 30; //minutes (wait time that's considered "too long")
 const time_threshold = 15; //minutes (how long the wait time must be that high to notify)
 var earliest_exceeded = null;
-var slack = new SlackWebhook(config.slack_webhook, {
-    defaults: {
-        "username": "QueueBot",
-        "icon_url": "https://" + config.domain + "/img/cmuq_small.png"
-    }
-});
+var slack = null;
+if (config.slack_webhook && config.slack_webhook != "") {
+    slack = new SlackWebhook(config.slack_webhook, {
+        defaults: {
+            "username": "QueueBot",
+            "icon_url": "https://" + config.domain + "/img/cmuq_small.png"
+        }
+    });
+}
 
 exports.init = function() {
     exports.update().then(function(result) {
@@ -120,7 +123,9 @@ exports.update = function() {
             earliest_exceeded = null;
         }
         if (earliest_exceeded && now - earliest_exceeded >= time_threshold * 60 * 1000) {
-            slack.send("@channel The wait time is *" + Math.ceil(last_wait / 60) + " minutes* right now. More TAs might be needed. (<https://" + config.domain + "/|view»>)");
+            if (slack) {
+                slack.send("@channel The wait time is *" + Math.ceil(last_wait / 60) + " minutes* right now. More TAs might be needed. (<https://" + config.domain + "/|view»>)");
+            }
             earliest_exceeded = null;
         }
         
