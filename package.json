@@ -11,6 +11,7 @@
     "ejs": "^2.5.5",
     "express": "^4.14.0",
     "googleapis": "^15.0.0",
+    "moment": "^2.18.1",
     "mysql": "^2.12.0",
     "sequelize": "^3.27.0",
     "slack-webhook": "^1.0.0",

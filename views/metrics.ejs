@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<%- include("head.ejs") %>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<body>
+<%- include("header.ejs") %>
+<div class="container">
+    <br>
+    <div id="daily_count"></div>
+</div>
+<script type="text/javascript">
+var gChartsLoaded = false;
+var dataLoaded = false;
+var json = [];
+google.charts.load('current', {packages: ['corechart', 'bar']});
+google.charts.setOnLoadCallback(gChartsLoadedCallback);
+function gChartsLoadedCallback() {
+    gChartsLoaded = true;
+    if (dataLoaded) {
+        showChart();
+    }
+}
+//var thirtyDaysAgo = new Date();
+//thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
+$.get("/metrics/counts.json?period=day", function(data) {
+    json = data;
+    dataLoaded = true;
+    if (gChartsLoaded) {
+        showChart();
+    }
+})
+function showChart() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('date', 'Date');
+    data.addColumn('number', 'Number of Students');
+    json.forEach(function(item) {
+        var date = new Date(item.time);
+        data.addRow([{v: date, f: date.toDateString()}, item.count]);
+    })
+    var options = {
+        height: 400,
+        chart: {
+            title: 'Number of Students at Office Hours'
+        },
+        hAxis: {
+            title: 'Date',
+        },
+        vAxis: {
+            title: 'Number of Students'
+        },
+        legend: null,
+        bar: {
+            groupWidth: "80%"
+        }
+    };
+
+    var chart = new google.visualization.ColumnChart(document.getElementById('daily_count'));
+    chart.draw(data, options);
+}
+</script>
+<%- include("footer.ejs") %>
+</body>
+</html>

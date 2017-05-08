@@ -9,6 +9,7 @@ var options = require("./options.js");
 
 var entries_cache = null;
 var topics_cache = null;
+var topics_cache_updated = new Date(0);
 
 exports.get = function(req, res) {
     // If we need to display a toast on this request, it'll be in a cookie.
@@ -25,9 +26,8 @@ exports.get = function(req, res) {
     async.waterfall([
         function(callback) {
             //don't re-query the database if nothing has changed
-            if (entries_cache && topics_cache) {
+            if (entries_cache) {
                 entries = entries_cache;
-                topics = topics_cache;
                 callback(null);
                 return;
             }
@@ -40,16 +40,27 @@ exports.get = function(req, res) {
             }).then(function(results) {
                 entries = results;
                 entries_cache = results;
-                return model.Topic.findAll({
-                    where: {
-                        out_date: {lt: new Date()},
-                        due_date: {gt: new Date()}
-                    },
-                    order: [['due_date', 'ASC']]
-                });
+                callback(null);
+            });
+        },
+        function(callback) {
+            //don't re-query the database if nothing has changed
+            if (topics_cache && topics_cache_updated > new Date(new Date().getTime() + 1000*60*60)) {
+                topics = topics_cache;
+                callback(null);
+                return;
+            }
+            //our cache is out-of-date (or doesn't exist), query the database
+            model.Topic.findAll({
+                where: {
+                    out_date: {lt: new Date()},
+                    due_date: {gt: new Date()}
+                },
+                order: [['due_date', 'ASC']]
             }).then(function(results) {
                 topics = results;
                 topics_cache = results;
+                topics_cache_updated = new Date();
                 callback(null);
             });
         },

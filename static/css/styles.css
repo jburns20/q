@@ -8,8 +8,13 @@ body {
     margin-bottom: 3em;
 }
 
-nav .brand-logo {
+nav .brand-logo, nav .brand-logo a {
     font-size: 1.6rem;
+    padding: 0px;
+}
+
+nav .brand-logo a:hover {
+    background-color: transparent;
 }
 
 .center-btn {

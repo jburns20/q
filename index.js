@@ -12,6 +12,8 @@ var waittimes = require("./waittimes.js");
 var login = require("./routes/login.js");
 var home = require("./routes/home.js");
 var options = require("./routes/options.js");
+var metrics = require("./routes/metrics.js");
+var gettime = require("./routes/gettime.js");
 
 var app = express();
 var server = http.Server(app);
@@ -46,5 +48,10 @@ app.get("/logout", login.get_logout);
 
 app.get("/options", options.get);
 app.post("/options", options.post);
+
+app.get("/waittime", gettime.get);
+
+app.get("/metrics", metrics.get);
+app.get("/metrics/counts.json", metrics.get_counts);
 
 server.listen(config.server_port);
