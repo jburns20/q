@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <%- include("head.ejs") %>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.js"></script>
 <body>
 <%- include("header.ejs") %>
 <div class="container">
@@ -9,54 +11,66 @@
     <div id="daily_count"></div>
 </div>
 <script type="text/javascript">
-var gChartsLoaded = false;
-var dataLoaded = false;
-var json = [];
-google.charts.load('current', {packages: ['corechart', 'bar']});
-google.charts.setOnLoadCallback(gChartsLoadedCallback);
-function gChartsLoadedCallback() {
-    gChartsLoaded = true;
-    if (dataLoaded) {
-        showChart();
+var dateFormat = d3.time.format.utc("%Y-%m-%d");
+var chart = c3.generate({
+    bindto: '#daily_count',
+    data: {
+        xs: {
+            "Number of Students/Day": "Date",
+            "Number of Students/Hr": "Hour"
+        },
+        rows: [],
+        type: 'bar',
+        onclick: function(d, element) {
+            chart.hide("Number of Students/Day");
+            chart.show("Number of Students/Hr");
+            var nextDay = new Date(d.x);
+            nextDay.setDate(nextDay.getDate()+1);
+            chart.zoom([d.x, nextDay]);
+        },
+        hide: "Number of Students/Hr"
+    },
+    axis: {
+        x: {
+            type: 'timeseries',
+            localtime: false,
+            tick: {
+                format: function(x) {
+                    return dateFormat(x);
+                },
+                culling: 12
+            }
+        }
+    },
+    bar: {
+        width: {
+            ratio: 1
+        }
+    },
+    zoom: {
+        enabled: false
     }
-}
+});
 //var thirtyDaysAgo = new Date();
 //thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
-$.get("/metrics/counts.json?period=day", function(data) {
-    json = data;
-    dataLoaded = true;
-    if (gChartsLoaded) {
-        showChart();
-    }
-})
-function showChart() {
-    var data = new google.visualization.DataTable();
-    data.addColumn('date', 'Date');
-    data.addColumn('number', 'Number of Students');
+var dailyRows = [["Date", "Number of Students/Day"]];
+$.get("/metrics/counts.json?granularity=day", function(json) {
     json.forEach(function(item) {
-        var date = new Date(item.time);
-        data.addRow([{v: date, f: date.toDateString()}, item.count]);
-    })
-    var options = {
-        height: 400,
-        chart: {
-            title: 'Number of Students at Office Hours'
-        },
-        hAxis: {
-            title: 'Date',
-        },
-        vAxis: {
-            title: 'Number of Students'
-        },
-        legend: null,
-        bar: {
-            groupWidth: "80%"
-        }
-    };
-
-    var chart = new google.visualization.ColumnChart(document.getElementById('daily_count'));
-    chart.draw(data, options);
-}
+        dailyRows.push([new Date(item.time), item.count]);
+    });
+    chart.load({
+        rows: dailyRows
+    });
+});
+var hourlyRows = [["Hour", "Number of Students/Hr"]];
+$.get("/metrics/counts.json?granularity=hour", function(json) {
+    json.forEach(function(item) {
+        hourlyRows.push([new Date(item.time), item.count]);
+    });
+    chart.load({
+        rows: hourlyRows
+    });
+});
 </script>
 <%- include("footer.ejs") %>
 </body>

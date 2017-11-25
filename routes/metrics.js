@@ -18,9 +18,13 @@ function count_where_clause(start, end) {
     }
 }
 
-function count_query(period, start, end) {
-    return "SELECT DATE_ADD(CURRENT_DATE(), INTERVAL TIMESTAMPDIFF(" +
-        period + ",CURRENT_DATE(),help_time) " + period + ") as time" +
+function count_query(period, granularity, start, end) {
+    var formatStr = "";
+    if (granularity == "week") formatStr += "%X w%V";
+    if (granularity == "day" || granularity == "hour") formatStr += "%Y-%m-%d";
+    if (period == "weekday") formatStr = "%W";
+    if (granularity == "hour") formatStr += " %H:00:00";
+    return "SELECT DATE_FORMAT(help_time, \"" + formatStr + "\") as time" +
         ", COUNT(id) as count, SEC_TO_TIME(SUM(" +
         "TIMESTAMPDIFF(SECOND, help_time, exit_time))) as total_time " +
         "FROM `entries` " + count_where_clause(start, end) + " GROUP BY time";
@@ -40,13 +44,16 @@ exports.get = function(req, res) {
 }
 
 exports.get_counts = function(req, res) {
-    if (req.query.period != "hour" && req.query.period != "day") {
+    var p = req.query.period;
+    var g = req.query.granularity;
+    if (p && p != "weekday"
+        || g != "week" && g != "day" && g != "hour") {
         res.send(400);
         return;
     }
     var from = parseDate(req.query.from, "YYYY-MM-DD");
     var to = parseDate(req.query.to, "YYYY-MM-DD");
-    var query = count_query(req.query.period, from, to);
+    var query = count_query(req.query.period, req.query.granularity, from, to);
     model.sql.query(query, {
         type: model.sql.QueryTypes.SELECT,
         replacements: [from, to],
