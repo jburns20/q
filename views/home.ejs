@@ -12,8 +12,7 @@
   </span>
   <%_ if (message && session && session.TA) { _%>
     <a href="#" onclick="editMessage(); return false;" style="vertical-align: -0.25em;"><i class="material-icons">mode_edit</i></a>
-  <%_ } _%>
-  <%_ if (!message && session && session.TA) { _%>
+  <%_ } else if (!message && session && session.TA) { _%>
   <button class='btn-flat light-blue-text text-darken-1' onclick="editMessage(); return false;">Add a message</button>
   <%_ } _%>
   </div>
@@ -24,7 +23,7 @@
     <button class='btn waves-effect waves-light cyan'>Submit</button>
   </form>
   <%_ } _%>
-  
+
   <div id="queue_container">
   <div id="status">
     <div class="inner">
@@ -33,7 +32,7 @@
   </div>
   <ul class="collection" id="queue"></ul>
   </div>
-  
+
   <div id="add_form">
   <h6 class="center" style="font-size: 120%;">
     <%_ if (session && session.TA) { _%>
@@ -98,8 +97,8 @@ var waittimes = <%- JSON.stringify(waittimes); -%>;
 $(document).ready(function() {
   <%_ if (toast) { _%>
     Materialize.toast("<%= toast %>", 4000);
-    
   <%_ } _%>
+
 <%_ var sawSelf = false; _%>
 <%_ entries.forEach(function(entry) { _%>
   <%_ if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id)) { _%>
@@ -131,13 +130,13 @@ $(document).ready(function() {
   <%_ } _%>
 <%_ }); _%>
 
-  <%_ if ((sawSelf || frozen) && !(session && session.TA)) { _%>
-    $("#add_form").hide();
+  <%_ if ((!sawSelf && !frozen) || (session && session.TA)) { _%>
+    $("#add_form").show();
   <%_ } _%>
-  <%_ if (!frozen) { _%>
-    $("#frozen_message").hide();
+  <%_ if (frozen) { _%>
+    $("#frozen_message").show();
   <%_ } _%>
-  
+
     positionOverlay();
     updateStatus();
 });

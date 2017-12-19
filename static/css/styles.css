@@ -115,6 +115,10 @@ input {
     line-height: 24px;
 }
 
+#add_form, #frozen_message {
+    display: none;
+}
+
 .attribution {
     margin: 0px;
     text-align: center;
