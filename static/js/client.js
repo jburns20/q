@@ -314,42 +314,37 @@ socket.on("done", function(message) {
     seq = message.seq;
 });
 
-socket.on("frozen", function(message) {
+socket.on("option", function(message) {
     if (message.seq != seq + 1) {
         window.location.reload();
         return;
     }
-    if (message.value) {
-        $("#frozen_message").show();
-        if (ta_id) {
-            $(".freeze-input").val(0);
-            $(".freeze-btn").text("Unfreeze");
+    if (message.key == "frozen") {
+        if (message.value == "1") {
+            $("#frozen_message").show();
+            if (ta_id) {
+                $(".freeze-input").val(0);
+                $(".freeze-btn").text("Unfreeze");
+            } else {
+                $("#add_form").hide();
+            }
         } else {
-            $("#add_form").hide();
+            $("#frozen_message").hide();
+            if ($("#queue").find(".me").length == 0) {
+                $("#add_form").show();
+            }
+            if (ta_id) {
+                $(".freeze-input").val(1);
+                $(".freeze-btn").text("Freeze");
+            }
         }
-    } else {
-        $("#frozen_message").hide();
-        if ($("#queue").find(".me").length == 0) {
-            $("#add_form").show();
-        }
+    } else if (message.key == "message") {
         if (ta_id) {
-            $(".freeze-input").val(1);
-            $(".freeze-btn").text("Freeze");
+            window.location.reload();
+            return;
         }
+        $("#message_content").html(message.value);
     }
-    seq = message.seq;
-});
-
-socket.on("message", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
-    if (ta_id) {
-        window.location.reload();
-        return;
-    }
-    $("#message_content").html(message.content);
     seq = message.seq;
 });
 

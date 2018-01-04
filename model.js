@@ -25,10 +25,12 @@ exports.Session = sequelize.define("session", {
 exports.TA = sequelize.define("tas", {
     "email": Sequelize.STRING,
     "full_name": Sequelize.STRING,
+    "semester": Sequelize.STRING,
     "time_helped": Sequelize.INTEGER,
     "num_helped": Sequelize.INTEGER,
     "time_today": Sequelize.INTEGER,
-    "num_today": Sequelize.INTEGER
+    "num_today": Sequelize.INTEGER,
+    "admin": Sequelize.BOOLEAN
 }, {
     tableName: 'tas',
     underscored: true
@@ -37,6 +39,7 @@ exports.TA = sequelize.define("tas", {
 exports.Entry = sequelize.define("entry", {
     "user_id": Sequelize.STRING,
     "name": Sequelize.STRING,
+    "semester": Sequelize.STRING,
     "entry_time": Sequelize.DATE,
     "help_time": Sequelize.DATE,
     "exit_time": Sequelize.DATE,
@@ -50,7 +53,8 @@ exports.Entry = sequelize.define("entry", {
 exports.Topic = sequelize.define("topic", {
     "name": Sequelize.STRING,
     "out_date": Sequelize.DATE,
-    "due_date": Sequelize.DATE
+    "due_date": Sequelize.DATE,
+    "semester": Sequelize.STRING
 }, {
     underscored: true
 });
@@ -61,7 +65,6 @@ exports.Option = sequelize.define("option", {
 }, {
     underscored: true
 });
-
 
 // Relationships
 

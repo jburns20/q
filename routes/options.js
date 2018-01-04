@@ -1,59 +1,51 @@
-var striptags = require("striptags");
+var sanitize = require('sanitize-html');
 
 var realtime = require("../realtime.js");
 var model = require("../model.js");
 
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
-var frozen_cache = null;
+var options_cache = {};
+var protected_keys = ["admin", "current_semester"];
 
-exports.frozen = function() {
-    if (frozen_cache !== null) {
-        return Promise.resolve(frozen_cache);
+exports.get_string = function(key, default_value) {
+    if (default_value === undefined) {
+        default_value = "";
+    }
+    if (key in options_cache) {
+        return Promise.resolve(options_cache[key]);
     }
     return model.Option.findOne({
-        where: {key: "frozen"}
+        where: {key: key}
     }).then(function(row) {
-        if (row && row.value == "1") {
-            frozen_cache = true;
-            return true;
-        } else if (row && row.value == "0") {
-            frozen_cache = false;
-            return false;
-        } else {
-            return model.Option.create({
-                key: "frozen",
-                value: "0"
-            }).then(function() {
-                frozen_cache = false;
-                return false;
-            });
+        if (row) {
+            options_cache[key] = row.value;
+            return row.value;
         }
+        return model.Option.create({
+            key: key,
+            value: default_value
+        }).then(function() {
+            options_cache[key] = default_value;
+            return default_value;
+        });
     });
 };
 
-var message_cache = null;
-
-exports.message = function() {
-    if (message_cache !== null) {
-        return Promise.resolve(message_cache);
+exports.get_bool = function(key, default_value) {
+    if (default_value === undefined) {
+        default_value = false;
     }
-    return model.Option.findOne({
-        where: {key: "message"}
-    }).then(function(row) {
-        if (row) {
-            message_cache = row.value;
-            return row.value;
-        } else {
-            return model.Option.create({
-                key: "message",
-                value: ""
-            }).then(function() {
-                message_cache = "";
-                return "";
-            });
-        }
+    var string_default = default_value ? "1" : "0";
+    return exports.get_string(key, string_default).then(function(value) {
+        return value == "1";
     });
+};
+
+exports.frozen = function() { return exports.get_bool("frozen", false); };
+exports.message = function() { return exports.get_string("message", ""); };
+exports.current_semester = function() {
+    return exports.get_string("current_semester", "");
 };
 
 exports.get = function(req, res) {
@@ -85,54 +77,73 @@ function respond(req, res, message, data) {
     }
 }
 
+function validate(key, value) {
+    if (key == 'frozen' && (value == '0' || value == '1')) {
+        return value;
+    } else if (key == 'message') {
+        return sanitize(value, {
+            allowedTags: allowed_tags
+        });
+    }
+}
+
+function success_message(key, prev_value, value) {
+    if (key == 'frozen') {
+        if (prev_value == '0' && value == '1') {
+            return "Queue frozen";
+        } else if (prev_value == "1" && value == "0") {
+            return "Queue unfrozen";
+        }
+    }
+    if (key == "message") {
+        if (prev_value === "" && value !== "") {
+            return "Message added";
+        } else if (prev_value !== "" && value === "") {
+            return "Message removed";
+        } else if (prev_value != value) {
+            return "Message updated";
+        }
+    }
+}
+
 exports.post = function(req, res) {
     if (!req.session || !req.session.TA) {
         respond(req, res, "You don't have permission to do that.");
         return;
     }
+    var is_protected = false;
+    Object.keys(req.body).forEach(function(key) {
+        if (protected_keys.indexOf(key) >= 0) {
+            is_protected = true;
+        }
+    });
+    if (is_protected && !req.session.TA.admin) {
+        respond(req, res, "You don't have permission to do that.");
+        return;
+    }
     var promises = [];
 
-    if (req.body.frozen == "0" || req.body.frozen == "1") {
-        var prev_frozen = null;
-        var p = exports.frozen().then(function(result) {
-            prev_frozen = result;
+    Object.keys(req.body).forEach(function(key) {
+        var value = validate(key, req.body[key]);
+        if (value === undefined) {
+            return;
+        }
+        var prev_value = null;
+        var p = exports.get_string(key).then(function(prev) {
+            prev_value = prev;
             return model.Option.upsert({
-                key: "frozen",
-                value: req.body.frozen
+                key: key,
+                value: value
             });
         }).then(function(row) {
-            frozen_cache = null;
-            if (req.body.frozen == "1" && !prev_frozen) {
-                realtime.frozen(true);
-                return "Queue frozen";
-            } else if (req.body.frozen == "0" && prev_frozen) {
-                realtime.frozen(false);
-                return "Queue unfrozen";
-            } else {
-                return null;
-            }
+            options_cache[key] = value;
+            realtime.option(key, value);
+            return success_message(key, prev_value, value);
         });
         promises.push(p);
-    }
-
-    if (req.body.message || req.body.message === "") {
-        var message = striptags(req.body.message, allowed_tags);
-        var p = model.Option.upsert({
-            key: "message",
-            value: message
-        }).then(function(row) {
-            message_cache = null;
-            realtime.message(message);
-            if (message == "") {
-                return "Message removed";
-            } else {
-                return "Message updated";
-            }
-        });
-        promises.push(p);
-    }
+    });
 
     Promise.all(promises).then(function(results) {
-        respond(req, res, results.filter(function(x) {return x != null}).join(', '));
+        respond(req, res, results.join(', '));
     });
 };
