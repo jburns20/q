@@ -2,11 +2,12 @@ var sanitize = require('sanitize-html');
 
 var realtime = require("../realtime.js");
 var model = require("../model.js");
+var home = require("./home.js");
 
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
 var options_cache = {};
-var protected_keys = ["admin", "current_semester"];
+var protected_keys = ["current_semester"];
 
 exports.get_string = function(key, default_value) {
     if (default_value === undefined) {
@@ -84,25 +85,48 @@ function validate(key, value) {
         return sanitize(value, {
             allowedTags: allowed_tags
         });
+    } else if (key == "current_semester" && RegExp("^[SMNF][0-9][0-9]$").test(value)) {
+        return value;
     }
 }
 
-function success_message(key, prev_value, value) {
-    if (key == 'frozen') {
+function post_prop_update(key, prev_value, value) {
+    if (key == "frozen") {
         if (prev_value == '0' && value == '1') {
-            return "Queue frozen";
+            return Promise.resolve("Queue frozen");
         } else if (prev_value == "1" && value == "0") {
-            return "Queue unfrozen";
+            return Promise.resolve("Queue unfrozen");
         }
-    }
-    if (key == "message") {
+    } else if (key == "message") {
         if (prev_value === "" && value !== "") {
-            return "Message added";
+            return Promise.resolve("Message added");
         } else if (prev_value !== "" && value === "") {
-            return "Message removed";
+            return Promise.resolve("Message removed");
         } else if (prev_value != value) {
-            return "Message updated";
+            return Promise.resolve("Message updated");
         }
+    } else if (key == "current_semester") {
+        return model.sql.transaction(function(t) {
+            return model.Session.destroy({
+                where: {ta_id: {$gte: 0}},
+                transaction: t
+            }).then(function() {
+                return model.Entry.destroy({
+                    where: {status: {$lt: 2}},
+                    transaction: t
+                });
+            }).then(function() {
+                return model.TA.update({
+                    helping_id: null
+                }, {
+                    where: {id: {$gte: 0}},
+                    transaction: t
+                });
+            })
+        }).then(function() {
+            home.clear_entries_cache();
+            return "Current semester changed. Please log in again.";
+        });
     }
 }
 
@@ -126,6 +150,7 @@ exports.post = function(req, res) {
     Object.keys(req.body).forEach(function(key) {
         var value = validate(key, req.body[key]);
         if (value === undefined) {
+            promises.push(Promise.resolve("Value for property '" + key + "' was not valid"));
             return;
         }
         var prev_value = null;
@@ -138,12 +163,12 @@ exports.post = function(req, res) {
         }).then(function(row) {
             options_cache[key] = value;
             realtime.option(key, value);
-            return success_message(key, prev_value, value);
+            return post_prop_update(key, prev_value, value);
         });
         promises.push(p);
     });
 
     Promise.all(promises).then(function(results) {
-        respond(req, res, results.join(', '));
+        respond(req, res, results.filter(function(s) { return s != undefined }).join(', '));
     });
 };

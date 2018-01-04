@@ -11,6 +11,10 @@ var entries_cache = null;
 var topics_cache = null;
 var topics_cache_updated = new Date(0);
 
+exports.clear_entries_cache = function() {
+    entries_cache = null;
+}
+
 exports.get = function(req, res) {
     // If we need to display a toast on this request, it'll be in a cookie.
     // Store the message and clear the cookie so the user only sees it once.
@@ -151,7 +155,7 @@ function post_add(req, res) {
                 req.session = instance;
             });
         }
-    }).then(function() {
+    }).then(options.current_semester).then(function(current_semester) {
         // Finally, add the entry to the queue
         var times = waittimes.get();
         var estimate = null;
@@ -161,6 +165,7 @@ function post_add(req, res) {
         return model.Entry.create({
             user_id: user_id,
             name: name,
+            semester: current_semester,
             entry_time: new Date(),
             wait_estimate: estimate,
             status: 0,
