@@ -43,33 +43,26 @@ exports.get_callback = function(req, res) {
         function(body, something, callback) {
             userinfo = body;
             model.sql.sync().then(function() {
-                callback(null);
-            });
-        },
-        function(callback) {
-            model.TA.findOne({where: {email: userinfo.email}})
-                    .then(function(result) {
+                return model.TA.findOne({where: {email: userinfo.email}});
+            }).then(function(result) {
                 ta = result;
-                callback(null);
-            });
-        },
-        function(callback) {
-            model.Session.create({
-                "email": userinfo.email,
-                "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
-                "session_key": key,
-                "authenticated": true,
-                "ta_id": ta ? ta.id : null
+                return model.Session.create({
+                    "email": userinfo.email,
+                    "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
+                    "session_key": key,
+                    "authenticated": true,
+                    "ta_id": ta ? ta.id : null
+                });
             }).then(function() {
+                res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
+                res.redirect("/");
                 callback(null);
             });
-        },
-        function(callback) {
-            res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
-            res.redirect("/");
         }
     ], function(error) {
-        res.send("ERROR: " + error);
+        if (error) {
+            res.send("ERROR: " + error);
+        }
     });
 };
 
