@@ -6,9 +6,68 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.js"></script>
 <body>
 <%- include("header.ejs") %>
+<%
+function duration_format(seconds) {
+    if (seconds < 60) {
+        return Math.floor(seconds) + "s";
+    } else if (seconds < 60*60) {
+        return Math.floor(seconds / 60) + "m " + Math.floor(seconds) % 60 + "s";
+    } else if (seconds < 60*60*24) {
+        return Math.floor(seconds/60/60) + "h " + Math.floor(seconds/60) % 60 + "m";
+    } else {
+        return Math.floor(seconds/60/60/24) + "d " + Math.floor(seconds/60/60) % 24 + "h";
+    }
+}
+%>
 <div class="container">
-    <br>
+
+<h2>Metrics for <%= current_semester %></h2>
+<div class="card"><div class="card-content">
+    <h3 class="card-title">Your Statistics</h3>
+    <div class="row" style="margin-bottom: 0px;">
+    <div class="col s12 m6 l4 num-box"><p>Number of Students Helped</p><p class="bignum"><%= individual.num_students %></p></div>
+    <div class="col s12 m6 l4 num-box"><p>Total Time Spent Helping</p><p class="bignum"><%= duration_format(individual.total_help_duration) %></p></div>
+    <div class="col s12 m6 l4 num-box"><p>Average Time per Student</p><p class="bignum"><%= duration_format(individual.avg_help_duration) %></p></div>
+    </div>
+    <h4 class="card-title" style="display: inline-block;">Students Helped Today</h4>
+    <p style="display: inline-block;"><input id='emails' type='text' value="<%= laststudents.map(function(x) { return x.user_id + "@andrew.cmu.edu" }).join(";"); %>"> <a id="copy_button" href="javascript:;">Copy all email addresses</a></p>
+    <table class="striped"><thead>
+    <tr><th>Name</th><th>Andrew ID</th><th>Topic</th><th>Help Time</th></tr>
+    </thead><tbody>
+    <% laststudents.forEach(function(entry) { %>
+    <tr><td><%= entry.name %></td><td><%= entry.user_id %></td><td><%= entry.topic_name ? entry.topic_name : "other" %></td><td><%= entry.help_time %></td></tr>
+    <% }); %>
+    </tbody></table>
+</div></div>
+
+<div class="card"><div class="card-content">
+    <h3 class="card-title">Overall Staff Statistics</h3>
+    <div class="row" style="margin-bottom: 0px;">
+    <div class="col s12 m6 l3 num-box"><p>Number of Students Helped</p><p class="bignum"><%= summary.num_students %></p></div>
+    <div class="col s12 m6 l3 num-box"><p>Average Wait Time</p><p class="bignum"><%= duration_format(summary.avg_wait_time) %></p></div>
+    <div class="col s12 m6 l3 num-box"><p>Total Time Spent Helping</p><p class="bignum"><%= duration_format(summary.total_help_duration) %></p></div>
+    <div class="col s12 m6 l3 num-box"><p>Average Time per Student</p><p class="bignum"><%= duration_format(summary.avg_help_duration) %></p></div>
+    </div>
+</div></div>
+
+<div class="card"><div class="card-content">
+    <h3 class="card-title">Number of Students over Time</h3>
     <div id="daily_count"></div>
+</div></div>
+
+<% if (admin) { %>
+<div class="card"><div class="card-content">
+    <h3 class="card-title">Statistics by TA</h3>
+    <table class="striped"><thead>
+    <tr><th>Name</th><th># Students Helped</th><th>Help Duration</th><th>Avg. Time/Student</th></tr>
+    </thead><tbody>
+    <% admin.forEach(function(entry) { %>
+    <tr><td><%= entry.full_name %></td><td><%= entry.num_students %></td><td><%= duration_format(entry.total_help_duration) %></td><td><%= duration_format(entry.avg_help_duration) %></td></tr>
+    <% }); %>
+    </tbody></table>
+</div></div>
+<% } %>
+
 </div>
 <script type="text/javascript">
 var dateFormat = d3.time.format.utc("%Y-%m-%d");
@@ -69,6 +128,14 @@ $.get("/metrics/counts.json?granularity=hour", function(json) {
     });
     chart.load({
         rows: hourlyRows
+    });
+});
+
+$(document).ready(function() {
+    $("#copy_button").click(function() {
+        $("#emails").select();
+        document.execCommand("Copy");
+        $("#copy_button").text("Copied. Remember to use the BCC field!");
     });
 });
 </script>

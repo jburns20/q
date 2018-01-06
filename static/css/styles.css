@@ -8,6 +8,10 @@ body {
     margin-bottom: 3em;
 }
 
+nav .brand-logo h1 {
+    margin: 0px;
+}
+
 nav .brand-logo, nav .brand-logo a {
     font-size: 1.6rem;
     padding: 0px;
@@ -117,6 +121,36 @@ input {
 
 #add_form, #frozen_message {
     display: none;
+}
+
+.card h3.card-title {
+    margin: 0px;
+    font-weight: 400;
+    font-size: 2rem;
+}
+
+.card h4.card-title {
+    margin: 0px;
+}
+
+#emails {
+    display: inline-block;
+    width: 0.1px;
+    overflow: hidden;
+    border: none;
+    background: none;
+    outline: none;
+    margin: 0px;
+    padding: 0px;
+    height: 1em;
+}
+
+.num-box p {
+    text-align: center;
+}
+
+.num-box .bignum {
+    font-size: 3rem;
 }
 
 .attribution {

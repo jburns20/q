@@ -59,8 +59,12 @@ exports.get = function(req, res) {
             }
         });
     } else if (req.query.key == "message") {
-        exports.message(function(message) {
+        exports.message().then(function(message) {
             res.send(message);
+        });
+    } else if (req.query.key == "current_semester") {
+        exports.current_semester().then(function(sem) {
+            res.send(sem);
         });
     } else {
         res.sendStatus(404);
@@ -74,7 +78,11 @@ function respond(req, res, message, data) {
         if (message) {
             res.cookie("toast", message);
         }
-        res.redirect("/");
+        if (req.headers.referer) {
+            res.redirect(req.headers.referer);
+        } else {
+            res.redirect("/");
+        }
     }
 }
 
