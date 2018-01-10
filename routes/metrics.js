@@ -55,7 +55,7 @@ function admin_query() {
 }
 
 function laststudents_query() {
-    return "SELECT entries.*,topics.name as topic_name FROM `entries` LEFT JOIN `topics` ON topics.id=entries.topic_id WHERE entries.status=2 AND entries.semester=? AND entries.ta_id=? AND entries.help_time >= ? ORDER BY entries.help_time DESC";
+    return "SELECT entries.*, topics.name as topic_name, TIMESTAMPDIFF(SECOND, entries.help_time, entries.exit_time) as help_duration FROM `entries` LEFT JOIN `topics` ON topics.id=entries.topic_id WHERE entries.status=2 AND entries.semester=? AND entries.ta_id=? AND entries.help_time >= ? ORDER BY entries.help_time DESC";
 }
 
 function parseDate(string, format) {
