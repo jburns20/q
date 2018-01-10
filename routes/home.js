@@ -1,5 +1,6 @@
 var async = require('async');
 var crypto = require('crypto');
+var Sequelize = require('sequelize');
 
 var config = require("../config.json");
 var model = require("../model.js");
@@ -23,57 +24,51 @@ exports.get = function(req, res) {
         toast = req.cookies.toast;
         res.clearCookie("toast");
     }
-    var entries = [];
-    var topics = [];
-    var frozen = false;
-    var message = "";
 
-    Promise.resolve().then(function() {
-        //don't re-query the database if nothing has changed
-        if (entries_cache) {
-            entries = entries_cache;
-            return;
-        }
-        return model.Entry.findAll({
-            where: {status: {lt: 2}},
-            include: [{model: model.TA, as: "TA"},
-                      {model: model.Topic}],
-            order: [['entry_time', 'ASC']]
-        }).then(function(results) {
-            entries = results;
-            entries_cache = results;
-        });
-    }).then(function() {
-        //don't re-query the database if nothing has changed
-        if (topics_cache && topics_cache_updated > new Date(new Date().getTime() + 1000*60*60)) {
-            topics = topics_cache;
-            return;
-        }
-        //our cache is out-of-date (or doesn't exist), query the database
-        return model.Topic.findAll({
-            where: {
-                out_date: {lt: new Date()},
-                due_date: {gt: new Date()}
-            },
-            order: [['due_date', 'ASC']]
-        }).then(function(results) {
-            topics = results;
-            topics_cache = results;
+    Sequelize.Promise.props({
+        entries: function() {
+            //don't re-query the database if nothing has changed
+            if (entries_cache) {
+                return Promise.resolve(entries_cache);
+            }
+            return model.Entry.findAll({
+                where: {status: {lt: 2}},
+                include: [{model: model.TA, as: "TA"},
+                          {model: model.Topic}],
+                order: [['entry_time', 'ASC']]
+            })
+        }(),
+        topics: function() {
+            //only req-query the database at most once an hour
+            if (topics_cache && topics_cache_updated > new Date(new Date().getTime() - 1000*60*60)) {
+                return Promise.resolve(topics_cache);
+            }
+            //our cache is out-of-date (or doesn't exist), query the database
+            return model.Topic.findAll({
+                where: {
+                    out_date: {lt: new Date()},
+                    due_date: {gt: new Date()}
+                },
+                order: [['due_date', 'ASC']]
+            })
+        }(),
+        frozen: options.frozen(),
+        message: options.message()
+    }).then(function(results) {
+        entries_cache = results.entries;
+        var old_topics = topics_cache;
+        topics_cache = results.topics;
+        if (results.topics != old_topics) {
             topics_cache_updated = new Date();
-        });
-    }).then(options.frozen).then(function(result) {
-        frozen = result;
-    }).then(options.message).then(function(result) {
-        message = result;
-    }).then(function() {
+        }
         res.render("home", {
             title: config.title,
             session: req.session,
-            entries: entries,
-            topics: topics,
+            entries: results.entries,
+            topics: results.topics,
             seq: realtime.seq,
-            frozen: frozen,
-            message: message,
+            frozen: results.frozen,
+            message: results.message,
             waittimes: waittimes.get(),
             toast: toast
         });
