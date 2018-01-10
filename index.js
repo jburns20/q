@@ -14,6 +14,7 @@ var home = require("./routes/home.js");
 var options = require("./routes/options.js");
 var metrics = require("./routes/metrics.js");
 var gettime = require("./routes/gettime.js");
+var admin = require("./routes/admin.js");
 
 var app = express();
 var server = http.Server(app);
@@ -53,5 +54,7 @@ app.get("/waittime", gettime.get);
 
 app.get("/metrics", metrics.get);
 app.get("/metrics/counts.json", metrics.get_counts);
+
+app.get("/admin", admin.get);
 
 server.listen(config.server_port);

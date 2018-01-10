@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<%- include("head.ejs") %>
+<body>
+<%- include("header.ejs") %>
+<div class="container">
+<h2>Admin Settings</h2>
+<form action="/options" method="POST" class="row">
+<div class="input-field inline col m2 s4">
+<input type="text" name="current_semester" value="<%= current_semester %>"><label for="slack_webhook">Current Semester</label>
+</div>
+<div class="input-field inline col m2 s6 center-btn">
+<button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+</div>
+</form>
+<form action="/options" method="POST" class="row">
+<div class="input-field inline col m10 s12">
+<input type="text" name="slack_webhook" value="<%= slack_webhook %>"><label for="slack_webhook">Slack Webhook URL</label>
+</div>
+<div class="input-field inline col m2 s12 center-btn">
+<button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+</div>
+</form>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+  <%_ if (toast) { _%>
+    Materialize.toast("<%= toast %>", 4000);
+  <%_ } _%>
+});
+</script>
+<%- include("footer.ejs") %>
+</body>
+</html>
