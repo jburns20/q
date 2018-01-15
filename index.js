@@ -56,5 +56,6 @@ app.get("/metrics", metrics.get);
 app.get("/metrics/counts.json", metrics.get_counts);
 
 app.get("/admin", admin.get);
+app.post("/admin", admin.post);
 
 server.listen(config.server_port);

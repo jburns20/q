@@ -1,5 +1,7 @@
-var Sequelize = require('sequelize');
+var Sequelize = require("sequelize");
+var moment = require("moment");
 
+var model = require("../model.js");
 var config = require("../config.json");
 var options = require("./options.js");
 
@@ -18,16 +20,69 @@ exports.get = function(req, res) {
         toast = req.cookies.toast;
         res.clearCookie("toast");
     }
-    Sequelize.Promise.props({
-        semester: options.current_semester(),
-        webhook_url: options.slack_webhook()
+    var current_semester = null;
+    options.current_semester().then(function(semester) {
+        current_semester = semester;
+        return Sequelize.Promise.props({
+            webhook_url: options.slack_webhook(),
+            topics: function() {
+                return model.Topic.findAll({
+                    where: {
+                        semester: current_semester
+                    },
+                    order: [['due_date', 'ASC']]
+                })
+            }()
+        });
     }).then(function(results) {
         return res.render("admin", {
             title: config.title,
             session: req.session,
             toast: toast,
-            current_semester: results.semester,
-            slack_webhook: results.webhook_url
+            current_semester: current_semester,
+            slack_webhook: results.webhook_url,
+            topics: results.topics
         });
     });
+};
+
+function respond(req, res, message, data) {
+    if (req.query.json) {
+        res.json({message: message, data: data});
+    } else {
+        if (message) {
+            res.cookie("toast", message);
+        }
+        res.redirect("/admin");
+    }
+}
+
+function post_add(req, res) {
+    var name = req.body.topic_name;
+    var out_date = moment.tz(req.body.out_date, config.timezone);
+    var due_date = moment.tz(req.body.due_date, config.timezone);
+    console.log("out date: " + out_date + "<br>");
+    console.log("due date: " + due_date + "<br>");
+    res.redirect("/admin");
+}
+
+function post_delete(req, res) {
+
+}
+
+function post_update(req, res) {
+
+}
+
+exports.post = function(req, res) {
+    var action = req.body.action;
+    if (action == "ADD") {
+        post_add(req, res);
+    } else if (action == "DELETE") {
+        post_delete(req, res);
+    } else if (action == "UPDATE") {
+        post_update(req, res);
+    } else {
+        respond(req, res, "Invalid action: " + action);
+    }
 };
