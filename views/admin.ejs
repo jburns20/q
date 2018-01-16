@@ -7,6 +7,7 @@
 <%- include("header.ejs") %>
 <div class="container">
 <h2>Admin Settings</h2>
+
 <div class="card"><div class="card-content">
     <h3 class="card-title">General</h3>
     <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
@@ -26,6 +27,7 @@
         </div>
     </form>
 </div></div>
+
 <div class="card"><div class="card-content">
     <h3 class="card-title">Topics</h3>
     <div class="fake-table striped"><div class="fake-thead">
@@ -38,29 +40,66 @@
     </div><div class="fake-tbody">
     <% topics.forEach(function(topic) { %>
     <form class="fake-tr" method="POST">
-    <div class="fake-td"><input type="text" name="topic_name" value="<%= topic.name %>"></div>
-    <div class="fake-td"><input type="text" name="out_date" class="datepicker" value="<%= topic.out_date %>"></div>
-    <div class="fake-td"><input type="text" name="due_date" class="datepicker" value="<%= topic.due_date %>"></div>
+    <div class="fake-td"><input type="text" name="topic_name" value="<%= topic.name %>" required></div>
+    <div class="fake-td"><input type="text" name="out_date" class="datepicker" value="<%= topic.out_date %>" required></div>
+    <div class="fake-td"><input type="text" name="due_date" class="datepicker" value="<%= topic.due_date %>" required></div>
     <div class="fake-td" style="width: 1%; white-space:nowrap;">
         <input type="hidden" name="id" value="<%= topic.id %>">
-        <button class="btn-flat waves-effect cyan white-text" name="action" value="UPDATE">Update</button>
-        <button class="btn-flat waves-effect grey lighten-2 grey-text text-darken-3 remove-button" name="action" value="DELETE">Delete</button>
+        <button class="btn-flat waves-effect cyan white-text" name="action" value="UPDATETOPIC">Update</button>
+        <button class="btn-flat waves-effect grey lighten-2 grey-text text-darken-3 remove-button" name="action" value="DELETETOPIC">Delete</button>
     </div>
     </form>
     <% }); %>
     </div>
-    <p>Add a new topic:</p>
+    <p><strong>Add a new topic:</strong></p>
     <div class="fake-tbody">
     <form class="fake-tr" method="POST" style="background: none;">
-    <div class="fake-td"><label for="topic_name">Name</label><input type="text" name="topic_name"></div>
-    <div class="fake-td"><label for="out_date">Out Date/Time</label><input type="text" name="out_date" class="datepicker"></div>
-    <div class="fake-td"><label for="due_date">Due Date/Time</label><input type="text" name="due_date" class="datepicker"></div>
+    <div class="fake-td"><label for="topic_name">Name</label><input type="text" name="topic_name" required></div>
+    <div class="fake-td"><label for="out_date">Out Date/Time</label><input type="text" name="out_date" class="datepicker" required></div>
+    <div class="fake-td"><label for="due_date">Due Date/Time</label><input type="text" name="due_date" class="datepicker" required></div>
     <div class="fake-td" style="width: 1%; white-space:nowrap;">
-        <button class="btn-flat waves-effect cyan white-text" name="action" value="ADD">Add</button>
+        <button class="btn-flat waves-effect cyan white-text" name="action" value="ADDTOPIC">Add</button>
     </div>
     </form>
     </div></div>
 </div></div>
+
+<div class="card"><div class="card-content">
+    <h3 class="card-title">TAs</h3>
+    <div class="fake-table striped"><div class="fake-thead">
+    <div class="fake-tr">
+        <div class="fake-th">Name</div>
+        <div class="fake-th">Email</div>
+    </div>
+    </div><div class="fake-tbody">
+    <% tas.forEach(function(ta) { %>
+    <form class="fake-tr" method="POST">
+    <div class="fake-td"><input type="text" name="name" value="<%= ta.full_name %>"></div>
+    <div class="fake-td">
+        <input type="email" name="email" value="<%= ta.email %>" required <% if (ta.is_self || ta.admin) { %> disabled <% } %>>
+    </div>
+    <div class="fake-td" style="width: 1%; white-space:nowrap;">
+        <input type="hidden" name="id" value="<%= ta.id %>">
+        <button class="btn-flat waves-effect cyan white-text" name="action" value="UPDATETA">Update</button>
+        <% if (!ta.is_self && !ta.admin) { %>
+        <button class="btn-flat waves-effect grey lighten-2 grey-text text-darken-3 remove-button" name="action" value="DELETETA">Delete</button>
+        <% } %>
+    </div>
+    </form>
+    <% }); %>
+    </div>
+    <p><strong>Add a new TA:</strong></p>
+    <div class="fake-tbody">
+    <form class="fake-tr" method="POST" style="background: none;">
+    <div class="fake-td"><label for="name">Name</label><input type="text" name="name" required></div>
+    <div class="fake-td"><label for="email">Email</label><input type="email" name="email" required></div>
+    <div class="fake-td" style="width: 1%; white-space:nowrap;">
+        <button class="btn-flat waves-effect cyan white-text" name="action" value="ADDTA">Add</button>
+    </div>
+    </form>
+    </div></div>
+</div></div>
+
 </div>
 <script type="text/javascript">
 $(document).ready(function() {
