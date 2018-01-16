@@ -16,6 +16,11 @@ exports.clear_entries_cache = function() {
     entries_cache = null;
 }
 
+exports.clear_topics_cache = function() {
+    topics_cache = null;
+    topics_cache_updated = new Date(0);
+}
+
 exports.get = function(req, res) {
     // If we need to display a toast on this request, it'll be in a cookie.
     // Store the message and clear the cookie so the user only sees it once.

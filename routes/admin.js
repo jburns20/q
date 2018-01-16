@@ -4,6 +4,7 @@ var moment = require("moment");
 var model = require("../model.js");
 var config = require("../config.json");
 var options = require("./options.js");
+var home = require("./home.js");
 
 exports.get = function(req, res) {
     if (!req.session || !req.session.TA) {
@@ -12,6 +13,7 @@ exports.get = function(req, res) {
     }
     if (!req.session.TA.admin) {
         res.sendStatus(403);
+        return;
     }
     // If we need to display a toast on this request, it'll be in a cookie.
     // Store the message and clear the cookie so the user only sees it once.
@@ -59,22 +61,80 @@ function respond(req, res, message, data) {
 
 function post_add(req, res) {
     var name = req.body.topic_name;
-    var out_date = moment.tz(req.body.out_date, config.timezone);
-    var due_date = moment.tz(req.body.due_date, config.timezone);
-    console.log("out date: " + out_date + "<br>");
-    console.log("due date: " + due_date + "<br>");
-    res.redirect("/admin");
+    var out_date = moment.tz(new Date(req.body.out_date), config.timezone).toDate();
+    var due_date = moment.tz(new Date(req.body.due_date), config.timezone).toDate();
+    if (!out_date.getTime() || !due_date.getTime() || !name) {
+        respond(req, res, "Error: One of the fields was invalid.");
+        return;
+    }
+    options.current_semester().then(function(semester) {
+        return model.Topic.create({
+            name: name,
+            out_date: out_date,
+            due_date: due_date,
+            semester: semester
+        })
+    }).then(function() {
+        home.clear_topics_cache();
+        respond(req, res, "Topic added");
+    });
 }
 
 function post_delete(req, res) {
-
+    var id = req.body.id;
+    model.Topic.findById(id).then(function(instance) {
+        if (!instance) {
+            throw new Error("There is no topic with that ID");
+        }
+        return instance.destroy();
+    }).then(function() {
+        home.clear_topics_cache();
+        home.clear_entries_cache();
+        respond(req, res, "Topic deleted");
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error);
+    });
 }
 
 function post_update(req, res) {
-
+    var id = req.body.id;
+    var name;
+    var out_date
+    var due_date
+    model.Topic.findById(id).then(function(instance) {
+        if (!instance) {
+            throw new Error("There is no topic with that ID");
+        }
+        name = req.body.topic_name;
+        out_date = moment.tz(new Date(req.body.out_date), config.timezone).toDate();
+        due_date = moment.tz(new Date(req.body.due_date), config.timezone).toDate();
+        if (!out_date.getTime() || !due_date.getTime() || !name) {
+            throw new Error("One of the fields was invalid.");
+        }
+        return instance.update({
+            name: name,
+            out_date: out_date,
+            due_date: due_date
+        });
+    }).then(function() {
+        home.clear_topics_cache();
+        home.clear_entries_cache();
+        respond(req, res, "Topic updated");
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error);
+    });
 }
 
 exports.post = function(req, res) {
+    if (!req.session || !req.session.TA) {
+        res.redirect("/login");
+        return;
+    }
+    if (!req.session.TA.admin) {
+        res.sendStatus(403);
+        return;
+    }
+
     var action = req.body.action;
     if (action == "ADD") {
         post_add(req, res);
