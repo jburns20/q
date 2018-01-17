@@ -1,5 +1,5 @@
 var Sequelize = require("sequelize");
-var moment = require("moment");
+var moment = require("moment-timezone");
 var validator = require('validator');
 
 var model = require("../model.js");
