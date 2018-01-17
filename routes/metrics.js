@@ -89,7 +89,7 @@ exports.get = function(req, res) {
     }).then(function(results) {
         individual = results[0];
         var begintime = new Date();
-        begintime.setHours(begintime.getHours()-12);
+        begintime.setDate(begintime.getDate()-6);
         return model.sql.query(laststudents_query(), {
             type: model.sql.QueryTypes.SELECT,
             replacements: [current_semester, req.session.TA.id, begintime]
