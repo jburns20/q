@@ -17,6 +17,9 @@
       <% if (session && session.authenticated) { %>
       <li><span class="blue-text text-lighten-4">Logged in as <%=session.user_id %></span>
       <% if (session.TA) { %>
+      <% if (session.TA.admin) { %>
+      <a class="waves-effect" href="/admin">Admin</a>
+      <% } %>
       <a class="waves-effect" href="/metrics">Metrics</a>
       <% } %>
       <a class="waves-effect" href="/logout">Log Out</a></li>
@@ -40,6 +43,9 @@
       </form></li>
       <% } %>
       <% if (session.TA) { %>
+      <% if (session.TA.admin) { %>
+      <li><a href="/admin">Admin</a></li>
+      <% } %>
       <li><a href="/metrics">Metrics</a></li>
       <% } %>
       <li><a href="/logout">Log Out</a></li>
