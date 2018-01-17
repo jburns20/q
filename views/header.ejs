@@ -1,14 +1,14 @@
 <nav class="cyan" role="navigation">
   <div class="nav-wrapper container">
-    <span class="brand-logo hide-on-large-only"><%= title %></span>
+    <span class="brand-logo hide-on-large-only"><a href="/"><%= title %></a></span>
     <ul class="hide-on-med-and-down">
-      <li class="brand-logo" style="position: initial;"><a href="/"><%= title %></a></li>
+      <li class="brand-logo" style="position: initial;"><h1><a href="/"><%= title %></a></h1></li>
       <% if (session && session.TA) { %>
       <li style="margin-left: 10px;"><form method="POST" action="/options">
       <% if (typeof frozen != 'undefined' && frozen) { %>
-      <button class="waves-effect btn blue lighten-5 black-text" name="frozen" value="0">Unfreeze</button>
+      <button class="waves-effect btn blue lighten-5 black-text freeze-btn freeze-input" name="frozen" value="0">Unfreeze</button>
       <% } else if (typeof frozen != 'undefined') { %>
-      <button class="waves-effect btn blue lighten-5 black-text" name="frozen" value="1">Freeze</button>
+      <button class="waves-effect btn blue lighten-5 black-text freeze-btn freeze-input" name="frozen" value="1">Freeze</button>
       <% } %>
       </form></li>
       <% } %>
@@ -16,6 +16,9 @@
     <ul class="right hide-on-med-and-down">
       <% if (session && session.authenticated) { %>
       <li><span class="blue-text text-lighten-4">Logged in as <%=session.user_id %></span>
+      <% if (session.TA) { %>
+      <a class="waves-effect" href="/metrics">Metrics</a>
+      <% } %>
       <a class="waves-effect" href="/logout">Log Out</a></li>
       <% } else { %>
       <li><a class="waves-effect" href="/login">Log In</a></li>
@@ -28,13 +31,16 @@
       <% if (session.TA) { %>
       <li><form method="POST" action="/options">
       <% if (typeof frozen != 'undefined' && frozen) { %>
-      <input type="hidden" name="frozen" value="0">
-      <a class="waves-effect" onclick="$(this).closest('form').submit();">Unfreeze Queue</a>
+      <input type="hidden" name="frozen" class="freeze-input" value="0">
+      <a class="waves-effect" onclick="$(this).closest('form').submit();"><span class="freeze-btn">Unfreeze</span> Queue</a>
       <% } else if (typeof frozen != 'undefined') { %>
-      <input type="hidden" name="frozen" value="1">
-      <a class="waves-effect" onclick="$(this).closest('form').submit();">Freeze Queue</a>
+      <input type="hidden" name="frozen" class="freeze-input" value="1">
+      <a class="waves-effect" onclick="$(this).closest('form').submit();"><span class="freeze-btn">Freeze</span> Queue</a>
       <% } %>
       </form></li>
+      <% } %>
+      <% if (session.TA) { %>
+      <li><a href="/metrics">Metrics</a></li>
       <% } %>
       <li><a href="/logout">Log Out</a></li>
       <% } else { %>

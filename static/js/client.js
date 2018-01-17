@@ -66,7 +66,7 @@ function buildTAEntry(entry) {
         "<div>" + entry.name + " (" + entry.user_id + ")</div>"
       + "<div>" + entry.topic_name + "</div>"
     );
-    
+
     if (entry.status == 1 && ta_id == entry.ta_id) {
         elt.find(".helping-text").text("You are helping")
             .after($("<br>" + cancelHtml + "&nbsp;" + doneHtml));
@@ -152,11 +152,11 @@ function updateStatus() {
     } else {
         var ahead = $("#queue").children().length;
         if (ahead == 0) {
-            statushtml += "There are no students waiting.";
+            statushtml += "There are no students on the queue.";
         } else if (ahead == 1) {
-            statushtml += "There is 1 student waiting.";
+            statushtml += "There is 1 student on the queue.";
         } else {
-            statushtml += "There are " + ahead + " students waiting.";
+            statushtml += "There are " + ahead + " students on the queue.";
         }
         if (waittimes.length == ahead+1) {
             var time = Math.ceil(waittimes[ahead]/60);
@@ -204,7 +204,7 @@ $(document).on("submit", "form", function(event) {
 socket.on("add", function(message) {
     // notification on add for ta
     if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
-        var notification = new Notification("New Queue Entry", 
+        var notification = new Notification("New Queue Entry",
             {"body": "Name: " + message.data.name + "\n" +
                      "Andrew ID: " + message.data.user_id + "\n" +
                      "Topic: " + message.data.topic_name
@@ -314,35 +314,37 @@ socket.on("done", function(message) {
     seq = message.seq;
 });
 
-socket.on("frozen", function(message) {
+socket.on("option", function(message) {
     if (message.seq != seq + 1) {
         window.location.reload();
         return;
     }
-    if (message.value) {
-        $("#frozen_message").show();
-        if (!ta_id) {
-            $("#add_form").hide();
+    if (message.key == "frozen") {
+        if (message.value == "1") {
+            $("#frozen_message").show();
+            if (ta_id) {
+                $(".freeze-input").val(0);
+                $(".freeze-btn").text("Unfreeze");
+            } else {
+                $("#add_form").hide();
+            }
+        } else {
+            $("#frozen_message").hide();
+            if ($("#queue").find(".me").length == 0) {
+                $("#add_form").show();
+            }
+            if (ta_id) {
+                $(".freeze-input").val(1);
+                $(".freeze-btn").text("Freeze");
+            }
         }
-    } else {
-        $("#frozen_message").hide();
-        if ($("#queue").find(".me").length == 0) {
-            $("#add_form").show();
+    } else if (message.key == "message") {
+        if (ta_id) {
+            window.location.reload();
+            return;
         }
+        $("#message_content").html(message.value);
     }
-    seq = message.seq;
-});
-
-socket.on("message", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
-    if (ta_id) {
-        window.location.reload();
-        return;
-    }
-    $("#message_content").html(message.content);
     seq = message.seq;
 });
 

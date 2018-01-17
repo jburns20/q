@@ -5,6 +5,7 @@ var OAuth2 = google.auth.OAuth2;
 
 var config = require("../config.json");
 var model = require("../model.js");
+var options = require("./options.js");
 
 var oauth2Client = new OAuth2(config.google_id, config.google_secret,
   "https://" + config.domain + "/oauth2/callback"
@@ -28,9 +29,7 @@ exports.get_login = function(req, res) {
 };
 
 exports.get_callback = function(req, res) {
-    var userinfo = null;
     var key = crypto.randomBytes(72).toString('base64');
-    var ta = null;
     async.waterfall([
         function(callback) {
             oauth2Client.getToken(req.query.code, callback);
@@ -40,36 +39,37 @@ exports.get_callback = function(req, res) {
                 access_token: tokens.access_token
             }, callback);
         },
-        function(body, something, callback) {
-            userinfo = body;
-            model.sql.sync().then(function() {
-                callback(null);
-            });
-        },
-        function(callback) {
-            model.TA.findOne({where: {email: userinfo.email}})
-                    .then(function(result) {
-                ta = result;
-                callback(null);
-            });
-        },
-        function(callback) {
-            model.Session.create({
-                "email": userinfo.email,
-                "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
-                "session_key": key,
-                "authenticated": true,
-                "ta_id": ta ? ta.id : null
+        function(userinfo, something, callback) {
+            model.sql.sync()
+            .then(options.current_semester).then(function(semester) {
+                return model.TA.findOne({
+                    where: {
+                        email: userinfo.email,
+                        $or: [{semester: semester}, {admin: 1}]
+                    }
+                });
+            }).then(function(ta) {
+                return model.Session.create({
+                    "email": userinfo.email,
+                    "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
+                    "session_key": key,
+                    "authenticated": true,
+                    "ta_id": ta ? ta.id : null
+                });
             }).then(function() {
+                res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
+                if (req.headers.referer) {
+                    res.redirect(req.headers.referer);
+                } else {
+                    res.redirect("/");
+                }
                 callback(null);
             });
-        },
-        function(callback) {
-            res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
-            res.redirect("/");
         }
     ], function(error) {
-        res.send("ERROR: " + error);
+        if (error) {
+            res.send("ERROR: " + error);
+        }
     });
 };
 

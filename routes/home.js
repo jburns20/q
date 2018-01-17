@@ -1,5 +1,6 @@
 var async = require('async');
 var crypto = require('crypto');
+var Sequelize = require('sequelize');
 
 var config = require("../config.json");
 var model = require("../model.js");
@@ -11,6 +12,15 @@ var entries_cache = null;
 var topics_cache = null;
 var topics_cache_updated = new Date(0);
 
+exports.clear_entries_cache = function() {
+    entries_cache = null;
+}
+
+exports.clear_topics_cache = function() {
+    topics_cache = null;
+    topics_cache_updated = new Date(0);
+}
+
 exports.get = function(req, res) {
     // If we need to display a toast on this request, it'll be in a cookie.
     // Store the message and clear the cookie so the user only sees it once.
@@ -19,73 +29,51 @@ exports.get = function(req, res) {
         toast = req.cookies.toast;
         res.clearCookie("toast");
     }
-    var entries = [];
-    var topics = [];
-    var frozen = false;
-    var message = "";
-    async.waterfall([
-        function(callback) {
+
+    Sequelize.Promise.props({
+        entries: function() {
             //don't re-query the database if nothing has changed
             if (entries_cache) {
-                entries = entries_cache;
-                callback(null);
-                return;
+                return Promise.resolve(entries_cache);
             }
-            //our cache is out-of-date (or doesn't exist), query the database
-            model.Entry.findAll({
+            return model.Entry.findAll({
                 where: {status: {lt: 2}},
                 include: [{model: model.TA, as: "TA"},
                           {model: model.Topic}],
                 order: [['entry_time', 'ASC']]
-            }).then(function(results) {
-                entries = results;
-                entries_cache = results;
-                callback(null);
-            });
-        },
-        function(callback) {
-            //don't re-query the database if nothing has changed
-            if (topics_cache && topics_cache_updated > new Date(new Date().getTime() + 1000*60*60)) {
-                topics = topics_cache;
-                callback(null);
-                return;
+            })
+        }(),
+        topics: function() {
+            //only req-query the database at most once an hour
+            if (topics_cache && topics_cache_updated > new Date(new Date().getTime() - 1000*60*60)) {
+                return Promise.resolve(topics_cache);
             }
             //our cache is out-of-date (or doesn't exist), query the database
-            model.Topic.findAll({
+            return model.Topic.findAll({
                 where: {
                     out_date: {lt: new Date()},
                     due_date: {gt: new Date()}
                 },
                 order: [['due_date', 'ASC']]
-            }).then(function(results) {
-                topics = results;
-                topics_cache = results;
-                topics_cache_updated = new Date();
-                callback(null);
-            });
-        },
-        function(callback) {
-            options.frozen(function(result) {
-                frozen = result;
-                callback(null);
-            });
-        },
-        function(callback) {
-            options.message(function(result) {
-                message = result;
-                callback(null);
-            });
+            })
+        }(),
+        frozen: options.frozen(),
+        message: options.message()
+    }).then(function(results) {
+        entries_cache = results.entries;
+        var old_topics = topics_cache;
+        topics_cache = results.topics;
+        if (results.topics != old_topics) {
+            topics_cache_updated = new Date();
         }
-    ],
-    function(error) {
         res.render("home", {
             title: config.title,
             session: req.session,
-            entries: entries,
-            topics: topics,
+            entries: results.entries,
+            topics: results.topics,
             seq: realtime.seq,
-            frozen: frozen,
-            message: message,
+            frozen: results.frozen,
+            message: results.message,
             waittimes: waittimes.get(),
             toast: toast
         });
@@ -108,159 +96,125 @@ function post_add(req, res) {
     var user_id = req.body.user_id.toLowerCase();
     var topic_id = req.body.topic_id;
     var topic = null;
-    async.waterfall([
-        function(callback) {
-            // A valid user ID is between 3 and 8 alphanumeric characters, and
-            // if the user is logged in (and isn't a TA), then it must match
-            // the account they're logged in with.
-            if (!user_id || user_id.length < 3 || user_id.length > 8 
-                    || !user_id.match("[A-Za-z0-9]*")
-                    || (req.session && req.session.authenticated && !req.session.TA && req.session.user_id != user_id)) {
-                callback(new Error("Invalid Andrew ID"));
-                return;
-            }
-            // A valid name is just any non-empty string.
-            if (!name || name.length < 1) {
-                callback(new Error("Invalid Name"));
-                return;
-            }
-            callback(null);
-        },
-        function(callback) {
-            // Make sure the user isn't already on the queue
-            model.Entry.findOne({
-                where: {status: {lt: 2}, user_id: user_id},
-            }).then(function(result) {
-                if (result) {
-                    throw new Error("You are already on the queue");
-                } else {
-                    return model.Topic.findById(topic_id);
-                }
-            }).then(function(result) {
-                if (result == null && topic_id == 0) {
-                    topic_id = null;
-                    callback(null);
-                } else if (result == null || result.out_date > new Date() || result.due_date < new Date()) {
-                    throw new Error("Please choose a topic from the list.");
-                } else {
-                    topic = result;
-                    callback(null);
-                }
-            }).catch(function(error) {
-                callback(error);
-            });
-        },
-        function(callback) {
-            // Make sure the queue isn't frozen
-            options.frozen(function(frozen) {
-                if (!frozen || (req.session && req.session.TA)) {
-                    callback(null);
-                } else {
-                    callback(new Error("The queue is not accepting signups right now"));
-                }
-            });
-        },
-        function(callback) {
-            // Create an unauthenticated session if the user isn't logged in or
-            // if their existing session's user ID doesn't match the current one
-            if (!req.session || (!req.session.TA && req.session.user_id != user_id)) {
-                var key = crypto.randomBytes(72).toString('base64');
-                model.Session.create({
-                    name: name,
-                    user_id: user_id,
-                    session_key: key,
-                    authenticated: false
-                }).then(function(instance) {
-                    req.session = instance;
-                    res.cookie("auth", key);
-                    callback(null);
-                });
-            } else if (req.session && !req.session.TA) {
-                req.session.update({
-                    name: name
-                }).then(function(instance) {
-                    req.session = instance;
-                    callback(null);
-                });
-            } else {
-                callback(null);
-            }
-        },
-        function(callback) {
-            // Finally, add the entry to the queue
-            var times = waittimes.get();
-            var estimate = null;
-            if (times.length > 0) {
-                estimate = times[times.length-1];
-            }
-            model.Entry.create({
-                user_id: user_id,
+    new Promise(function(resolve, reject) {
+        // A valid user ID is between 3 and 8 alphanumeric characters, and
+        // if the user is logged in (and isn't a TA), then it must match
+        // the account they're logged in with.
+        if (!user_id || user_id.length < 3 || user_id.length > 8
+                || !RegExp("^[A-Za-z0-9]*$").test(user_id)
+                || (req.session && req.session.authenticated && !req.session.TA && req.session.user_id != user_id)) {
+            throw new Error("Invalid Andrew ID");
+        }
+        // A valid name is just any non-empty string.
+        if (!name || name.length < 1) {
+            throw new Error("Invalid Name");
+        }
+        resolve();
+    }).then(function() {
+        // Make sure the user isn't already on the queue
+        return model.Entry.findOne({
+            where: {status: {lt: 2}, user_id: user_id},
+        });
+    }).then(function(result) {
+        if (result) {
+            throw new Error("You are already on the queue");
+        } else {
+            return model.Topic.findById(topic_id);
+        }
+    }).then(function(result) {
+        if (result == null && topic_id == 0) {
+            topic_id = null;
+        } else if (result == null || result.out_date > new Date() || result.due_date < new Date()) {
+            throw new Error("Please choose a topic from the list.");
+        } else {
+            topic = result;
+        }
+        // Make sure the queue isn't frozen
+        return options.frozen();
+    }).then(function(frozen) {
+        if (frozen && (!req.session || !req.session.TA)) {
+            throw new Error("The queue is not accepting signups right now");
+        }
+        // Create an unauthenticated session if the user isn't logged in or
+        // if their existing session's user ID doesn't match the current one
+        if (!req.session || (!req.session.TA && req.session.user_id != user_id)) {
+            var key = crypto.randomBytes(72).toString('base64');
+            return model.Session.create({
                 name: name,
-                entry_time: new Date(),
-                wait_estimate: estimate,
-                status: 0,
-                session_id: req.session.TA ? null : req.session.id,
-                topic_id: topic_id
+                user_id: user_id,
+                session_key: key,
+                authenticated: false
             }).then(function(instance) {
-                entries_cache = null;
-                instance.topic = topic
-                realtime.add(instance);
-                return waittimes.update();
-            }).then(function(waittimes) {
-                respond(req, res, "Entered the queue");
+                req.session = instance;
+                res.cookie("auth", key);
+            });
+        } else if (req.session && !req.session.TA) {
+            return req.session.update({
+                name: name
+            }).then(function(instance) {
+                req.session = instance;
             });
         }
-    ],
-    function(error) {
-        if (error) {
-            respond(req, res, "Error: " + error.message);
+    }).then(options.current_semester).then(function(current_semester) {
+        // Finally, add the entry to the queue
+        var times = waittimes.get();
+        var estimate = null;
+        if (times.length > 0) {
+            estimate = times[times.length-1];
         }
+        return model.Entry.create({
+            user_id: user_id,
+            name: name,
+            semester: current_semester,
+            entry_time: new Date(),
+            wait_estimate: estimate,
+            status: 0,
+            session_id: req.session.TA ? null : req.session.id,
+            topic_id: topic_id
+        });
+    }).then(function(instance) {
+        entries_cache = null;
+        instance.topic = topic
+        realtime.add(instance);
+        return waittimes.update();
+    }).then(function(waittimes) {
+        respond(req, res, "Entered the queue");
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error.message);
     });
 }
 
 function post_rem(req, res) {
     var id = req.body.entry_id;
     var entry = null;
-    async.waterfall([
-        function(callback) {
-            // Find the entry that should be removed
-            model.Entry.findById(id).then(function(instance) {
-                if (!instance) {
-                    callback(new Error("There is no entry with that ID"));
-                } else {
-                    entry = instance;
-                    callback(null);
-                }
-            });
-        },
-        function(callback) {
-            // Only entries that have not yet been helped can be removed.
-            // In order to remove an entry, you need to either be a TA or be
-            // logged in as the student who matches the entry.
-            if (entry.status == 0 && req.session
-                  && (req.session.id == entry.session_id
-                      || (req.session.authenticated 
-                            && req.session.user_id == entry.user_id)
-                      || req.session.TA)) {
-                callback(null);
-            } else {
-                callback(new Error("You don't have permission to remove that entry"));
-            }
-        },
-        function(callback) {
-            entry.destroy().then(function() {
-                realtime.remove(entry.id);
-                entries_cache = null;
-                return waittimes.update();
-            }).then(function(waittimes) {
-                respond(req, res, "Entry removed");
-            });
+
+    // Find the entry that should be removed
+    model.Entry.findById(id).then(function(instance) {
+        if (!instance) {
+            throw new Error("There is no entry with that ID");
         }
-    ],
-    function(error) {
-        if (error) {
-            respond(req, res, "Error: " + error.message);
+        entry = instance;
+        // Only entries that have not yet been helped can be removed.
+        // In order to remove an entry, you need to either be a TA or be
+        // logged in as the student who matches the entry.
+        if (entry.status == 0 && req.session
+              && (req.session.id == entry.session_id
+                  || (req.session.authenticated
+                        && req.session.user_id == entry.user_id)
+                  || req.session.TA)) {
+            // entry can be removed
+            return entry.destroy();
+        } else {
+            throw new Error("You don't have permission to remove that entry");
         }
+    }).then(function() {
+        realtime.remove(entry.id);
+        entries_cache = null;
+        return waittimes.update();
+    }).then(function(waittimes) {
+        respond(req, res, "Entry removed");
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error.message);
     });
 }
 

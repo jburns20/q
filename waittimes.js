@@ -3,6 +3,7 @@ var SlackWebhook = require("slack-webhook");
 var config = require("./config.json");
 var model = require("./model.js");
 var realtime = require("./realtime.js");
+var options = require("./routes/options.js");
 
 var last_updated = new Date(0);
 var wait_times_cache = [];
@@ -12,17 +13,9 @@ const wait_threshold = 30; //minutes (wait time that's considered "too long")
 const time_threshold = 15; //minutes (how long the wait time must be that high to notify)
 var earliest_exceeded = null;
 var slack = null;
-if (config.slack_webhook && config.slack_webhook != "") {
-    slack = new SlackWebhook(config.slack_webhook, {
-        defaults: {
-            "username": "QueueBot",
-            "icon_url": "https://" + config.domain + "/img/cmuq_small.png"
-        }
-    });
-}
 
 exports.init = function() {
-    exports.update().then(function(result) {
+    exports.update_slack().then(exports.update()).then(function(result) {
         setInterval(function() {
             var thirtysecsago = new Date();
             thirtysecsago.setSeconds(thirtysecsago.getSeconds()-30);
@@ -105,7 +98,7 @@ exports.update = function() {
                 ta_times[min_id].setSeconds(seconds);
             }
         });
-        
+
         //calculate wait time for another hypothetical entry
         var min_time = new Date(now.getTime() + 10000000000);
         var min_id = 0;
@@ -128,13 +121,28 @@ exports.update = function() {
             }
             earliest_exceeded = null;
         }
-        
+
         wait_times_cache = wait_times;
         last_updated = now;
         realtime.waittimes(wait_times);
         return Promise.resolve(wait_times);
     }).catch(function(err) {
         return Promise.resolve([]);
+    });
+};
+
+exports.update_slack = function() {
+    return options.slack_webhook().then(function(webhook_url) {
+        if (webhook_url && webhook_url != "") {
+            slack = new SlackWebhook(webhook_url, {
+                defaults: {
+                    "username": "QueueBot",
+                    "icon_url": "https://" + config.domain + "/img/cmuq_small.png"
+                }
+            });
+        } else {
+            slack = null;
+        }
     });
 };
 

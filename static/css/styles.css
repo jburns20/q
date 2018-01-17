@@ -8,6 +8,10 @@ body {
     margin-bottom: 3em;
 }
 
+nav .brand-logo h1 {
+    margin: 0px;
+}
+
 nav .brand-logo, nav .brand-logo a {
     font-size: 1.6rem;
     padding: 0px;
@@ -115,6 +119,40 @@ input {
     line-height: 24px;
 }
 
+#add_form, #frozen_message {
+    display: none;
+}
+
+.card h3.card-title {
+    margin: 0px;
+    font-weight: 400;
+    font-size: 2rem;
+}
+
+.card h4.card-title {
+    margin: 0px;
+}
+
+#emails {
+    display: inline-block;
+    width: 0.1px;
+    overflow: hidden;
+    border: none;
+    background: none;
+    outline: none;
+    margin: 0px;
+    padding: 0px;
+    height: 1em;
+}
+
+.num-box p {
+    text-align: center;
+}
+
+.num-box .bignum {
+    font-size: 3rem;
+}
+
 .attribution {
     margin: 0px;
     text-align: center;
@@ -124,6 +162,64 @@ input {
     bottom: 0px;
     width: 100%;
     padding: 0.5em;
+}
+
+.fake-table {
+    width: 100%;
+    display: table;
+    border-collapse: collapse;
+}
+
+.fake-thead {
+    display: table-header-group;
+    vertical-align: middle;
+    border-color: inherit;
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.fake-tbody {
+    display: table-row-group;
+    vertical-align: middle;
+    border-color: inherit;
+}
+
+.fake-tr {
+    display: table-row;
+    vertical-align: inherit;
+}
+
+.fake-td, .fake-th {
+    padding: 15px 5px;
+    display: table-cell;
+    text-align: left;
+    vertical-align: middle;
+    border: none;
+}
+
+.fake-th {
+    font-weight: bold;
+}
+
+.fake-table.striped .fake-tbody .fake-tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+.fake-td input {
+    margin: 0px;
+}
+
+input.flatpickr-input[type=text] {
+    color: inherit;
+    border-bottom: 1px solid #9e9e9e;
+}
+
+input.flatpickr-input[type=text]:focus {
+    border-bottom: 1px solid #26a69a;
+    box-shadow: 0 1px 0 0 #26a69a;
+}
+
+.fake-td button.btn-flat {
+    padding: 0 1rem;
 }
 
 .clear {

@@ -9,10 +9,10 @@ exports.seq = 0;
 
 exports.init = function(app) {
     sio = require("socket.io")(app);
-    
+
     sio.on("connection", function(socket) {
         socket.join(student_room);
-        
+
         socket.on("authenticate", function (auth) {
             if (!auth) {
                 return;
@@ -118,29 +118,18 @@ exports.done = function(entry_id, ta_id) {
     });
 };
 
-exports.frozen = function(value) {
+exports.option = function(key, value) {
     exports.seq = exports.seq + 1;
     if (!sio) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    sio.emit("frozen", {
+    sio.emit("option", {
         seq: exports.seq,
+        key: key,
         value: value
     });
-};
-
-exports.message = function(content) {
-    exports.seq = exports.seq + 1;
-    if (!sio) {
-        console.log("ERROR: Socket.io is not initialized yet");
-        return;
-    }
-    sio.emit("message", {
-        seq: exports.seq,
-        content: content
-    });
-};
+}
 
 exports.waittimes = function(times) {
     exports.seq = exports.seq + 1;
