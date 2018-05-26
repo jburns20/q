@@ -5,19 +5,19 @@
   "main": "index.js",
   "author": "Jonathan Burns <jaburns@andrew.cmu.edu>",
   "dependencies": {
-    "async": "^2.1.4",
-    "body-parser": "^1.15.2",
+    "async": "^2.6.1",
+    "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
-    "ejs": "^2.5.5",
-    "express": "^4.14.0",
+    "ejs": "^2.6.1",
+    "express": "^4.16.3",
     "googleapis": "^15.0.0",
-    "moment": "^2.18.1",
-    "moment-timezone": "^0.5.14",
+    "moment": "^2.22.1",
+    "moment-timezone": "^0.5.17",
     "mysql": "^2.12.0",
-    "sanitize-html": "^1.16.3",
-    "sequelize": "^3.27.0",
+    "sanitize-html": "^1.18.2",
+    "sequelize": "^3.33.0",
     "slack-webhook": "^1.0.0",
     "socket.io": "^1.7.2",
-    "validator": "^9.2.0"
+    "validator": "^9.4.1"
   }
 }
