@@ -8,7 +8,7 @@ var model = require("../model.js");
 var options = require("./options.js");
 
 var oauth2Client = new OAuth2(config.google_id, config.google_secret,
-  "https://" + config.domain + "/oauth2/callback"
+  config.protocol + "://" + config.domain + "/oauth2/callback"
 );
 var auth_url = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"],
