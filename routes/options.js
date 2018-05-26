@@ -17,8 +17,10 @@ exports.get_string = function(key, default_value) {
     if (key in options_cache) {
         return Promise.resolve(options_cache[key]);
     }
-    return model.Option.findOne({
-        where: {key: key}
+    return model.sql.sync().then(function() {
+        return model.Option.findOne({
+            where: {key: key}
+        });
     }).then(function(row) {
         if (row) {
             options_cache[key] = row.value;
@@ -39,7 +41,9 @@ exports.get_bool = function(key, default_value) {
         default_value = false;
     }
     var string_default = default_value ? "1" : "0";
-    return exports.get_string(key, string_default).then(function(value) {
+    return model.sql.sync().then(function() {
+        return exports.get_string(key, string_default);
+    }).then(function(value) {
         return value == "1";
     });
 };
