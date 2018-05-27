@@ -6,6 +6,7 @@ var config = require("../config.json");
 var model = require("../model.js");
 var realtime = require("../realtime.js");
 var waittimes = require("../waittimes.js");
+var p = require("../permissions.js");
 var options = require("./options.js");
 
 var entries_cache = null;
@@ -30,52 +31,66 @@ exports.get = function(req, res) {
         res.clearCookie("toast");
     }
 
-    Sequelize.Promise.props({
-        entries: function() {
-            //don't re-query the database if nothing has changed
-            if (entries_cache) {
-                return Promise.resolve(entries_cache);
+    options.current_semester().then(function(sem) {
+        if (sem == "") {
+            if (req.session && req.session.owner) {
+                res.redirect("/admin");
+            } else {
+                res.render("splash", {
+                    title: config.title,
+                    session: req.session,
+                    toast: toast
+                });
             }
-            return model.Entry.findAll({
-                where: {status: {lt: 2}},
-                include: [{model: model.TA, as: "TA"},
-                          {model: model.Topic}],
-                order: [['entry_time', 'ASC']]
-            })
-        }(),
-        topics: function() {
-            //only req-query the database at most once an hour
-            if (topics_cache && topics_cache_updated > new Date(new Date().getTime() - 1000*60*60)) {
-                return Promise.resolve(topics_cache);
-            }
-            //our cache is out-of-date (or doesn't exist), query the database
-            return model.Topic.findAll({
-                where: {
-                    out_date: {lt: new Date()},
-                    due_date: {gt: new Date()}
-                },
-                order: [['due_date', 'ASC']]
-            })
-        }(),
-        frozen: options.frozen(),
-        message: options.message()
-    }).then(function(results) {
-        entries_cache = results.entries;
-        var old_topics = topics_cache;
-        topics_cache = results.topics;
-        if (results.topics != old_topics) {
-            topics_cache_updated = new Date();
+            return;
         }
-        res.render("home", {
-            title: config.title,
-            session: req.session,
-            entries: results.entries,
-            topics: results.topics,
-            seq: realtime.seq,
-            frozen: results.frozen,
-            message: results.message,
-            waittimes: waittimes.get(),
-            toast: toast
+        Sequelize.Promise.props({
+            entries: function() {
+                //don't re-query the database if nothing has changed
+                if (entries_cache) {
+                    return Promise.resolve(entries_cache);
+                }
+                return model.Entry.findAll({
+                    where: {status: {lt: 2}},
+                    include: [{model: model.TA, as: "TA"},
+                              {model: model.Topic}],
+                    order: [['entry_time', 'ASC']]
+                })
+            }(),
+            topics: function() {
+                //only req-query the database at most once an hour
+                if (topics_cache && topics_cache_updated > new Date(new Date().getTime() - 1000*60*60)) {
+                    return Promise.resolve(topics_cache);
+                }
+                //our cache is out-of-date (or doesn't exist), query the database
+                return model.Topic.findAll({
+                    where: {
+                        out_date: {lt: new Date()},
+                        due_date: {gt: new Date()}
+                    },
+                    order: [['due_date', 'ASC']]
+                })
+            }(),
+            frozen: options.frozen(),
+            message: options.message()
+        }).then(function(results) {
+            entries_cache = results.entries;
+            var old_topics = topics_cache;
+            topics_cache = results.topics;
+            if (results.topics != old_topics) {
+                topics_cache_updated = new Date();
+            }
+            res.render("home", {
+                title: config.title,
+                session: req.session,
+                entries: results.entries,
+                topics: results.topics,
+                seq: realtime.seq,
+                frozen: results.frozen,
+                message: results.message,
+                waittimes: waittimes.get(),
+                toast: toast
+            });
         });
     });
 };
@@ -102,7 +117,7 @@ function post_add(req, res) {
         // the account they're logged in with.
         if (!user_id || user_id.length < 3 || user_id.length > 8
                 || !RegExp("^[A-Za-z0-9]*$").test(user_id)
-                || (req.session && req.session.authenticated && !req.session.TA && req.session.user_id != user_id)) {
+                || (p.is_logged_in(req) && !p.is_ta(req) && req.session.user_id != user_id)) {
             throw new Error("Invalid Andrew ID");
         }
         // A valid name is just any non-empty string.
@@ -132,12 +147,12 @@ function post_add(req, res) {
         // Make sure the queue isn't frozen
         return options.frozen();
     }).then(function(frozen) {
-        if (frozen && (!req.session || !req.session.TA)) {
+        if (frozen && !p.is_ta(req) && !p.is_admin(req)) {
             throw new Error("The queue is not accepting signups right now");
         }
         // Create an unauthenticated session if the user isn't logged in or
         // if their existing session's user ID doesn't match the current one
-        if (!req.session || (!req.session.TA && req.session.user_id != user_id)) {
+        if (!req.session || (!p.is_ta(req) && req.session.user_id != user_id)) {
             var key = crypto.randomBytes(72).toString('base64');
             return model.Session.create({
                 name: name,
@@ -148,7 +163,7 @@ function post_add(req, res) {
                 req.session = instance;
                 res.cookie("auth", key);
             });
-        } else if (req.session && !req.session.TA) {
+        } else if (req.session && !p.is_ta(req) && !p.is_admin(req)) {
             return req.session.update({
                 name: name
             }).then(function(instance) {
@@ -169,7 +184,7 @@ function post_add(req, res) {
             entry_time: new Date(),
             wait_estimate: estimate,
             status: 0,
-            session_id: req.session.TA ? null : req.session.id,
+            session_id: (p.is_ta(req) || p.is_admin(req)) ? null : req.session.id,
             topic_id: topic_id
         });
     }).then(function(instance) {
@@ -199,9 +214,8 @@ function post_rem(req, res) {
         // logged in as the student who matches the entry.
         if (entry.status == 0 && req.session
               && (req.session.id == entry.session_id
-                  || (req.session.authenticated
-                        && req.session.user_id == entry.user_id)
-                  || req.session.TA)) {
+                  || (p.is_logged_in(req) && req.session.user_id == entry.user_id)
+                  || p.is_ta(req) || p.is_admin(req))) {
             // entry can be removed
             return entry.destroy();
         } else {
@@ -221,7 +235,7 @@ function post_rem(req, res) {
 function post_help(req, res) {
     var id = req.body.entry_id;
     model.sql.transaction(function(t) {
-        if (!req.session || !req.session.TA) {
+        if (!p.is_ta(req)) {
             throw new Error("You don't have permission to help that student");
         }
         if (req.session.TA.helping_id) {
@@ -269,7 +283,7 @@ function post_cancel(req, res) {
     var id = req.body.entry_id;
     var ta = null;
     model.sql.transaction(function(t) {
-        if (!req.session || !req.session.TA) {
+        if (!p.is_ta(req) && !p.is_admin(req)) {
             throw new Error("You don't have permission to cancel helping that student");
         }
         return model.Entry.findById(id, {
@@ -307,7 +321,7 @@ function post_done(req, res) {
     var message = null;
     var duration;
     model.sql.transaction(function(t) {
-        if (!req.session || !req.session.TA) {
+        if (!p.is_ta(req)) {
             throw new Error("You don't have permission to finish helping that student");
         }
         return model.Entry.findById(id, {

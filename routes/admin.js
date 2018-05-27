@@ -3,16 +3,17 @@ var moment = require("moment-timezone");
 var validator = require('validator');
 
 var model = require("../model.js");
+var p = require("../permissions.js");
 var config = require("../config.json");
 var options = require("./options.js");
 var home = require("./home.js");
 
 exports.get = function(req, res) {
-    if (!req.session || !req.session.TA) {
+    if (!p.is_logged_in(req)) {
         res.redirect("/login");
         return;
     }
-    if (!req.session.TA.admin) {
+    if (!p.is_admin(req)) {
         res.sendStatus(403);
         return;
     }
@@ -47,7 +48,7 @@ exports.get = function(req, res) {
         });
     }).then(function(results) {
         results.tas.forEach(function(ta) {
-            ta.is_self = (ta.id == req.session.TA.id);
+            ta.is_self = (req.session.TA && ta.id == req.session.TA.id);
         });
         return res.render("admin", {
             title: config.title,
@@ -56,7 +57,8 @@ exports.get = function(req, res) {
             current_semester: current_semester,
             slack_webhook: results.webhook_url,
             topics: results.topics,
-            tas: results.tas
+            tas: results.tas,
+            owner_email: config.owner_email
         });
     });
 };
@@ -148,25 +150,44 @@ function post_add_ta(req, res) {
         return;
     }
 
+    var added;
     options.current_semester().then(function(semester) {
-        return model.TA.create({
-            full_name: req.body.name,
-            email: req.body.email,
-            semester: semester,
-            time_helped: 0,
-            num_helped: 0,
-            time_today: 0,
-            num_today: 0,
-            admin: 0
+        return model.TA.findOrCreate({
+            where: {
+                email: req.body.email,
+                semester: semester,
+            },
+            defaults: {
+                full_name: req.body.name,
+                time_helped: 0,
+                num_helped: 0,
+                time_today: 0,
+                num_today: 0,
+                admin: req.body.admin == "true" || req.body.email == config.owner_email
+            }
         });
+    }).then(function(result) {
+        var instance = result[0];
+        added = result[1];
+        if (instance.email == req.session.email && !req.session.TA) {
+            return req.session.update({
+                ta_id: instance.id
+            });
+        } else {
+            return Promise.resolve(req.session);
+        }
     }).then(function() {
-        respond(req, res, "TA added");
+        if (added) {
+            respond(req, res, "TA added");
+        } else {
+            respond(req, res, "Error: TA already exists.")
+        }
     });
 }
 
 function post_delete_ta(req, res) {
     var id = req.body.id;
-    if (id == req.session.TA.id) {
+    if (req.session.TA && id == req.session.TA.id) {
         respond(req, res, "Error: Cannot delete yourself");
         return;
     }
@@ -176,9 +197,6 @@ function post_delete_ta(req, res) {
         }
         if (instance.helping_id) {
             throw new Error("Cannot remove a TA while they are helping a student");
-        }
-        if (instance.admin) {
-            throw new Error("Cannot delete an administrator");
         }
         return instance.destroy();
     }).then(function() {
@@ -192,38 +210,60 @@ function post_update_ta(req, res) {
     var id = req.body.id;
     var name;
     var email;
-    model.TA.findById(id).then(function(instance) {
-        if (!instance) {
-            throw new Error("There is no topic with that ID");
+    var instance;
+    var updated_fields;
+    model.TA.findById(id).then(function(inst) {
+        if (!inst) {
+            throw new Error("There is no TA with that ID");
         }
+        instance = inst;
         name = req.body.name;
         email = req.body.email;
+        admin = req.body.admin == "true";
         if (!name) {
             throw new Error("TA name was missing or invalid.");
         }
-        var updated_fields = {
-            full_name: name
+        updated_fields = {
+            full_name: name,
+            admin: admin
         }
-        if (id != req.session.TA.id && !instance.admin) {
-            if ( !email || !validator.isEmail(email)) {
+        if (req.session.TA && id == req.session.TA.id) {
+            if (!admin) {
+                throw new Error("You cannot demote yourself to a regular TA.")
+            }
+        } else {
+            if (!email || !validator.isEmail(email)) {
                 throw new Error("TA email was missing or invalid.");
             }
             updated_fields['email'] = email;
+            updated_fields['admin'] = admin || email == config.owner_email;
+        }
+        return options.current_semester();
+    }).then(function(semester) {
+        return model.TA.findOne({
+            where: {
+                semester: semester,
+                email: email
+            }
+        });
+    }).then(function(result) {
+        if (result && result.id != instance.id) {
+            throw new Error("A TA with that email address already exists.");
         }
         return instance.update(updated_fields);
     }).then(function() {
         respond(req, res, "TA updated");
     }).catch(function(error) {
-        respond(req, res, "Error: " + error);
+        respond(req, res, error.toString());
     });
 }
 
 exports.post = function(req, res) {
-    if (!req.session || !req.session.TA) {
+    if (!p.is_logged_in(req)) {
         res.redirect("/login");
         return;
     }
-    if (!req.session.TA.admin) {
+    if (!p.is_admin(req)) {
         res.sendStatus(403);
         return;
     }

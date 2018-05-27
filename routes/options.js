@@ -3,7 +3,9 @@ var sanitize = require('sanitize-html');
 var realtime = require("../realtime.js");
 var waittimes = require("../waittimes.js");
 var model = require("../model.js");
+var p = require("../permissions.js");
 var home = require("./home.js");
+var config = require("../config.json");
 
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
@@ -108,7 +110,7 @@ function validate(key, value) {
     }
 }
 
-function post_prop_update(key, prev_value, value) {
+function post_prop_update(req, key, prev_value, value) {
     if (key == "frozen") {
         if (prev_value == '0' && value == '1') {
             return Promise.resolve("Queue frozen");
@@ -124,10 +126,34 @@ function post_prop_update(key, prev_value, value) {
             return Promise.resolve("Message updated");
         }
     } else if (key == "current_semester") {
+        if (prev_value == value) {
+            return;
+        }
         return model.sql.transaction(function(t) {
-            return model.Session.destroy({
-                where: {ta_id: {$gte: 0}},
-                transaction: t
+            return model.TA.findOne({
+                where: {
+                    semester: value,
+                    admin: true
+                }
+            }).then(function(admin) {
+                if (!admin && req.session.TA) {
+                    return model.TA.create({
+                        email: req.session.TA.email,
+                        semester: value,
+                        full_name: req.session.TA.full_name,
+                        time_helped: 0,
+                        num_helped: 0,
+                        time_today: 0,
+                        num_today: 0,
+                        admin: true
+                    });
+                }
+                return Promise.resolve(null);
+            }).then(function() {
+                return model.Session.destroy({
+                    where: {ta_id: {$gte: 0}},
+                    transaction: t
+                })
             }).then(function() {
                 return model.Entry.destroy({
                     where: {status: {$lt: 2}},
@@ -152,7 +178,7 @@ function post_prop_update(key, prev_value, value) {
 }
 
 exports.post = function(req, res) {
-    if (!req.session || !req.session.TA) {
+    if (!p.is_ta(req) && !p.is_admin(req)) {
         respond(req, res, "You don't have permission to do that.");
         return;
     }
@@ -162,7 +188,7 @@ exports.post = function(req, res) {
             is_protected = true;
         }
     });
-    if (is_protected && !req.session.TA.admin) {
+    if (is_protected && !p.is_admin(req)) {
         respond(req, res, "You don't have permission to do that.");
         return;
     }
@@ -184,7 +210,7 @@ exports.post = function(req, res) {
         }).then(function(row) {
             options_cache[key] = value;
             realtime.option(key, value);
-            return post_prop_update(key, prev_value, value);
+            return post_prop_update(req, key, prev_value, value);
         });
         promises.push(p);
     });

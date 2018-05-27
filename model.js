@@ -17,7 +17,8 @@ exports.Session = sequelize.define("session", {
     "email": Sequelize.STRING,
     "user_id": Sequelize.STRING,
     "session_key": {type: Sequelize.STRING, unique: true},
-    "authenticated": Sequelize.BOOLEAN
+    "authenticated": Sequelize.BOOLEAN,
+    "owner": Sequelize.BOOLEAN
 }, {
     underscored: true
 });

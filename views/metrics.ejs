@@ -22,13 +22,17 @@ function duration_format(seconds) {
 <div class="container">
 
 <h2>Metrics for <%= current_semester %></h2>
+<% if (individual || laststudents) { %>
 <div class="card"><div class="card-content">
+    <% if (individual) { %>
     <h3 class="card-title">Your Statistics</h3>
     <div class="row" style="margin-bottom: 0px;">
     <div class="col s12 m6 l4 num-box"><p>Number of Students Helped</p><p class="bignum"><%= individual.num_students %></p></div>
     <div class="col s12 m6 l4 num-box"><p>Total Time Spent Helping</p><p class="bignum"><%= duration_format(individual.total_help_duration) %></p></div>
     <div class="col s12 m6 l4 num-box"><p>Average Time per Student</p><p class="bignum"><%= duration_format(individual.avg_help_duration) %></p></div>
     </div>
+    <% } %>
+    <% if (laststudents) { %>
     <h4 class="card-title" style="display: inline-block;">Students Helped This Week</h4>
     <p style="display: inline-block;"><input id='emails' type='text' value="<%= laststudents.map(function(x) { return x.user_id + "@andrew.cmu.edu" }).join(";"); %>"> <a id="copy_button" href="javascript:;">Copy all email addresses</a></p>
     <table class="striped"><thead>
@@ -38,7 +42,9 @@ function duration_format(seconds) {
     <tr><td><%= entry.name %></td><td><%= entry.user_id %></td><td><%= entry.topic_name ? entry.topic_name : "other" %></td><td><%= entry.help_time %></td><td><%= duration_format(entry.help_duration) %></td></tr>
     <% }); %>
     </tbody></table>
+    <% } %>
 </div></div>
+<% } %>
 
 <div class="card"><div class="card-content">
     <h3 class="card-title">Overall Staff Statistics</h3>

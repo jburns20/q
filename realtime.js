@@ -23,7 +23,7 @@ exports.init = function(app) {
             }).then(function(user) {
                 if (user) {
                     socket.session = user;
-                    if (user.TA) {
+                    if (user.TA || user.owner) {
                         socket.leave(student_room);
                         socket.join(ta_room);
                     }

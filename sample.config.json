@@ -10,5 +10,7 @@
     "mysql_pass": "<Password for the MySQL user>",
 
     "google_id": "<Google Client ID from https://console.developers.google.com>",
-    "google_secret": "<Google Client Secret from https://console.developers.google.com>"
+    "google_secret": "<Google Client Secret from https://console.developers.google.com>",
+
+    "owner_email": "<Google/Andrew account email address for this site's Owner (super-user)>"
 }

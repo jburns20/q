@@ -73,8 +73,12 @@ function buildTAEntry(entry) {
     } else if (entry.status == 1) {
         elt.find(".helping-text").html(entry.ta_full_name + " is helping " + xHtml);
     } else if (!ta_helping_id) {
-        elt.find(".helping-text")
-            .after($(removeHtml + "&nbsp;" + helpHtml));
+        if (ta_id) {
+            elt.find(".helping-text")
+                .after($(removeHtml + "&nbsp;" + helpHtml));
+        } else {
+            elt.find(".helping-text").after($(removeHtml));
+        }
     }
     return elt;
 }
@@ -215,7 +219,7 @@ socket.on("add", function(message) {
         return;
     }
     var elt = null;
-    if (ta_id) {
+    if (ta_id || is_owner) {
         elt = buildTAEntry(message.data);
     } else {
         elt = buildStudentEntry(message);

@@ -45,7 +45,7 @@ exports.get_callback = function(req, res) {
                 return model.TA.findOne({
                     where: {
                         email: userinfo.email,
-                        $or: [{semester: semester}, {admin: 1}]
+                        semester: semester
                     }
                 });
             }).then(function(ta) {
@@ -54,7 +54,8 @@ exports.get_callback = function(req, res) {
                     "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
                     "session_key": key,
                     "authenticated": true,
-                    "ta_id": ta ? ta.id : null
+                    "ta_id": ta ? ta.id : null,
+                    "owner": userinfo.email == config.owner_email
                 });
             }).then(function() {
                 res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
