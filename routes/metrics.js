@@ -2,6 +2,7 @@ var Sequelize = require('sequelize');
 var model = require("../model.js");
 var moment = require("moment");
 var config = require("../config.json");
+var p = require("../permissions.js");
 var options = require("./options.js");
 
 function count_where_clause(start, end) {
@@ -65,8 +66,11 @@ function parseDate(string, format) {
 }
 
 exports.get = function(req, res) {
-    if (!req.session || !req.session.TA) {
+    if (!p.is_logged_in(req)) {
         res.redirect("/login");
+        return;
+    } else if (!p.is_ta(req) && !p.is_admin(req)) {
+        res.sendStatus(403);
         return;
     }
     var current_semester = null;
@@ -82,28 +86,33 @@ exports.get = function(req, res) {
         });
     }).then(function(results) {
         summary = results[0];
-        return model.sql.query(ta_query(), {
-            type: model.sql.QueryTypes.SELECT,
-            replacements: [req.session.TA.id, current_semester]
-        });
+        if (p.is_ta(req)) {
+            return model.sql.query(ta_query(), {
+                type: model.sql.QueryTypes.SELECT,
+                replacements: [req.session.TA.id, current_semester]
+            });
+        }
+        return Promise.resolve([null]);
     }).then(function(results) {
         individual = results[0];
-        var begintime = new Date();
-        begintime.setDate(begintime.getDate()-6);
-        return model.sql.query(laststudents_query(), {
-            type: model.sql.QueryTypes.SELECT,
-            replacements: [current_semester, req.session.TA.id, begintime]
-        });
+        if (p.is_ta(req)) {
+            var begintime = new Date();
+            begintime.setDate(begintime.getDate()-6);
+            return model.sql.query(laststudents_query(), {
+                type: model.sql.QueryTypes.SELECT,
+                replacements: [current_semester, req.session.TA.id, begintime]
+            });
+        }
+        return Promise.resolve(null);
     }).then(function(results) {
         laststudents = results;
-        if (req.session.TA.admin) {
+        if (p.is_admin(req)) {
             return model.sql.query(admin_query(), {
                 type: model.sql.QueryTypes.SELECT,
                 replacements: [current_semester]
             });
-        } else {
-            return Promise.resolve(null);
         }
+        return Promise.resolve(null);
     }).then(function(results) {
         res.render("metrics", {
             title: config.title,

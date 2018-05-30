@@ -8,7 +8,7 @@ In order to install the Queue application, you'll need to create a MySQL databas
 2. `mysql> CREATE DATABASE queue;`
 3. `mysql> GRANT ALL PRIVILEGES ON queue.* To 'your_username'@'localhost' IDENTIFIED BY 'your_password';` (make sure to choose a strong password)
 
-To get Google OAuth credentials, you can follow the instructions at [https://developers.google.com/adwords/api/docs/guides/authentication#webapp](https://developers.google.com/adwords/api/docs/guides/authentication#webapp). Leave the "Authorized JavaScript origins" field blank, and use `https://YOUR_DOMAIN/oauth2/callback` for the Authorized Redirect URI. (if you're not using HTTPS, replace `https` with `http`).
+To get Google OAuth credentials, you can follow the instructions at [https://developers.google.com/adwords/api/docs/guides/authentication#webapp](https://developers.google.com/adwords/api/docs/guides/authentication#webapp). Leave the "Authorized JavaScript origins" field blank, and use `https://<YOUR_DOMAIN>/oauth2/callback` for the Authorized Redirect URI. (if you're not using HTTPS, replace `https` with `http`).
 
 If you have a Slack team set up for your course, you can set up a Slack Incoming Webhook [here](https://my.slack.com/services/new/incoming-webhook/). Otherwise, you may leave the `slack_webhook` field empty in the config file.
 
@@ -20,18 +20,19 @@ If you have a Slack team set up for your course, you can set up a Slack Incoming
    ```
    {
        "title": "15-122 Office Hours Queue",
+       "protocol": "http",
        "domain": "q.15122.tk",
        "timezone": "America/New_York",
        "server_port": 80,
-   
+
        "mysql_db": "<Your MySQL database>",
        "mysql_user": "<MySQL user that has access to the database>",
        "mysql_pass": "<Password for the MySQL user>",
-   
+
        "google_id": "<Google Client ID from https://console.developers.google.com>",
        "google_secret": "<Google Client Secret from https://console.developers.google.com>",
-       
-       "slack_webhook": "<URL of the Slack Incoming Webhook to send notifications>"
+
+       "owner_email": "<Google/Andrew account email address for this site's Owner (super-user)>"
    }
    ```
 4. Run this command in your terminal:
@@ -50,4 +51,6 @@ You can also use [pm2](http://pm2.keymetrics.io/) to manage the server process t
 
 ## Add your information
 
-There is no UI for managing TAs or topics yet, so you'll need to add these items in the `tas` and `topics` tables of the database manually.
+In a web browser, go to the domain you specified in the configuration. If everything was set up correctly, you should see a splash page that says the installation was successful.
+
+Log into the account with the email address you specified as the `owner_email` in the configuration to finish the setup. You'll be taken to the admin page, where you should set the current semester and add admins, TAs and topics. If you're planning to help students, you must add yourself to the list as an admin (being the owner is not enough).

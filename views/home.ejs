@@ -10,13 +10,13 @@
     <%- message %>
   <%_ } _%>
   </span>
-  <%_ if (message && session && session.TA) { _%>
+  <%_ if (message && session && (session.TA || session.owner)) { _%>
     <a href="#" onclick="editMessage(); return false;" style="vertical-align: -0.25em;"><i class="material-icons">mode_edit</i></a>
-  <%_ } else if (!message && session && session.TA) { _%>
+  <%_ } else if (!message && session && (session.TA || session.owner)) { _%>
   <button class='btn-flat light-blue-text text-darken-1' onclick="editMessage(); return false;">Add a message</button>
   <%_ } _%>
   </div>
-  <%_ if (session && session.TA) { _%>
+  <%_ if (session && (session.TA || session.owner)) { _%>
   <form id="message_form" method='POST' action="/options" class='center input-field'>
     <input type='text' placeholder="most basic HTML tags are supported" style='width: 50%;' name="message" value='<%= message %>'>
     <button type='button' class='btn-flat' onclick="cancelEditMessage(); return false;">Cancel</button>
@@ -35,7 +35,7 @@
 
   <div id="add_form">
   <h6 class="center" style="font-size: 120%;">
-    <%_ if (session && session.TA) { _%>
+    <%_ if (session && (session.TA || session.owner)) { _%>
     Add a student to the queue:
     <%_ } else { _%>
     Add your name to the queue:
@@ -44,7 +44,7 @@
   <form method="POST" class="row">
   <div class="input-field inline col l4 m6 s12">
     <input id="name" name="name" type="text" required
-    <%_ if (session && !session.TA) { _%>
+    <%_ if (session && !session.TA && !session.owner) { _%>
     value="<%= session.name %>"
     <%_ } _%>
     >
@@ -52,9 +52,9 @@
   </div>
   <div class="input-field inline col l3 m6 s12">
     <input id="user_id" name="user_id" type="text" pattern="[A-Za-z0-9]*" minlength=3 maxlength=8 required
-    <%_ if (session && !session.TA) { _%>
+    <%_ if (session && !session.TA && !session.owner) { _%>
     value="<%= session.user_id %>"
-    <%_ if (session.authenticated && !session.TA) { _%>
+    <%_ if (session.authenticated && !session.TA && !session.owner) { _%>
     readonly="true"
     <%_ }} _%>
     >
@@ -92,6 +92,7 @@ var ta_helping_id = <%= session.TA.helping_id ? session.TA.helping_id : "null" %
 var ta_id = null;
 var ta_helping_id = null;
 <%_ } _%>
+var is_owner = <%- (session && session.owner) ? "true" : "false" -%>;
 var waittimes = <%- JSON.stringify(waittimes); -%>;
 
 $(document).ready(function() {
@@ -111,7 +112,7 @@ $(document).ready(function() {
         topic_name: entry.topic ? entry.topic.name : "other",
         ta_full_name: entry.TA ? entry.TA.full_name : ""
     }); %>));
-  <%_ } else if (session && session.TA) { _%>
+  <%_ } else if (session && (session.TA || session.owner)) { _%>
     $("#queue").append(buildTAEntry(<%- JSON.stringify({
         id: entry.id,
         status: entry.status,
@@ -130,7 +131,7 @@ $(document).ready(function() {
   <%_ } _%>
 <%_ }); _%>
 
-  <%_ if ((!sawSelf && !frozen) || (session && session.TA)) { _%>
+  <%_ if ((!sawSelf && !frozen) || (session && (session.TA || session.owner))) { _%>
     $("#add_form").show();
   <%_ } _%>
   <%_ if (frozen) { _%>

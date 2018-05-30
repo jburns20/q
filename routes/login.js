@@ -8,7 +8,7 @@ var model = require("../model.js");
 var options = require("./options.js");
 
 var oauth2Client = new OAuth2(config.google_id, config.google_secret,
-  "https://" + config.domain + "/oauth2/callback"
+  config.protocol + "://" + config.domain + "/oauth2/callback"
 );
 var auth_url = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"],
@@ -45,7 +45,7 @@ exports.get_callback = function(req, res) {
                 return model.TA.findOne({
                     where: {
                         email: userinfo.email,
-                        $or: [{semester: semester}, {admin: 1}]
+                        semester: semester
                     }
                 });
             }).then(function(ta) {
@@ -54,15 +54,12 @@ exports.get_callback = function(req, res) {
                     "user_id": userinfo.email.substring(0,userinfo.email.indexOf("@")),
                     "session_key": key,
                     "authenticated": true,
-                    "ta_id": ta ? ta.id : null
+                    "ta_id": ta ? ta.id : null,
+                    "owner": userinfo.email == config.owner_email
                 });
             }).then(function() {
                 res.cookie("auth", key, {"maxAge": 30*24*60*60*1000});
-                if (req.headers.referer) {
-                    res.redirect(req.headers.referer);
-                } else {
-                    res.redirect("/");
-                }
+                res.redirect("/");
                 callback(null);
             });
         }

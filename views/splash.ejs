@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<%- include("head.ejs") %>
+<body>
+<%- include("header.ejs") %>
+<div class="container">
+  <div id="status">
+    <h4>Installation Successful</h4>
+    <p>Log in as the owner specified in <code>config.json</code> to get started.</p>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+  <%_ if (toast) { _%>
+    Materialize.toast("<%= toast %>", 4000);
+  <%_ } _%>
+});
+
+</script>
+<%- include("footer.ejs") %>
+</body>
+</html>

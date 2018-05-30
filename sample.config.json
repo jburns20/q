@@ -1,5 +1,6 @@
 {
     "title": "15-122 Office Hours Queue",
+    "protocol": "https",
     "domain": "q.15122.tk",
     "timezone": "America/New_York",
     "server_port": 15122,
@@ -10,6 +11,6 @@
 
     "google_id": "<Google Client ID from https://console.developers.google.com>",
     "google_secret": "<Google Client Secret from https://console.developers.google.com>",
-    
-    "slack_webhook": "<URL of the Slack Incoming Webhook to send notifications>"
+
+    "owner_email": "<Google/Andrew account email address for this site's Owner (super-user)>"
 }

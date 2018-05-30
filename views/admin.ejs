@@ -8,11 +8,32 @@
 <div class="container">
 <h2>Admin Settings</h2>
 
+<% function is_not_admin(ta) {
+    return !ta.admin;
+} %>
+
+<% if (current_semester == "" || topics.length == 0 || tas.length == 0 || tas.every(is_not_admin)) { %>
+<div class="card"><div class="card-content">
+<h3 class="card-title">Setup Checklist</h3>
+<ul class="browser-default" style="margin: 0px;">
+    <% if (current_semester == "") { %>
+    <li>Set the current semester</li>
+    <% } %>
+    <% if (current_semester != "" && topics.length == 0) { %>
+    <li>Add topics</li>
+    <% } %>
+    <% if (current_semester != "" && (tas.length == 0 || tas.every(is_not_admin))) { %>
+    <li>Add admins and TAs (don't forget to add yourself!)</li>
+    <% } %>
+</ul>
+</div></div>
+<% } %>
+
 <div class="card"><div class="card-content">
     <h3 class="card-title">General</h3>
     <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
         <div class="input-field inline col m2 s4">
-        <input type="text" name="current_semester" value="<%= current_semester %>"><label for="slack_webhook">Current Semester</label>
+        <input type="text" name="current_semester" id="current_semester" value="<%= current_semester %>" placeholder="e.g. F17" required><label for="current_semester">Current Semester</label>
         </div>
         <div class="input-field inline col m2 s6 center-btn">
         <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
@@ -20,14 +41,16 @@
     </form>
     <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
         <div class="input-field inline col m10 s12">
-        <input type="text" name="slack_webhook" value="<%= slack_webhook %>"><label for="slack_webhook">Slack Webhook URL</label>
+        <input type="text" name="slack_webhook" id="slack_webhook" value="<%= slack_webhook %>"><label for="slack_webhook">Slack Webhook URL</label>
         </div>
         <div class="input-field inline col m2 s12 center-btn">
         <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
         </div>
     </form>
+    <p>If you have a Slack team set up for your course, you can set up a Slack Incoming Webhook <a href="https://my.slack.com/services/new/incoming-webhook/" target="_blank">here</a>. Otherwise, you may leave this field empty.</p>
 </div></div>
 
+<% if (current_semester != "") { %>
 <div class="card"><div class="card-content">
     <h3 class="card-title">Topics</h3>
     <div class="fake-table striped"><div class="fake-thead">
@@ -63,25 +86,32 @@
     </form>
     </div></div>
 </div></div>
+<% } %>
 
+<% if (current_semester != "") { %>
 <div class="card"><div class="card-content">
     <h3 class="card-title">TAs</h3>
     <div class="fake-table striped"><div class="fake-thead">
     <div class="fake-tr">
         <div class="fake-th">Name</div>
         <div class="fake-th">Email</div>
+        <div class="fake-th">Admin</div>
     </div>
     </div><div class="fake-tbody">
     <% tas.forEach(function(ta) { %>
     <form class="fake-tr" method="POST">
     <div class="fake-td"><input type="text" name="name" value="<%= ta.full_name %>"></div>
     <div class="fake-td">
-        <input type="email" name="email" value="<%= ta.email %>" required <% if (ta.is_self || ta.admin) { %> disabled <% } %>>
+        <input type="email" name="email" value="<%= ta.email %>" required <% if (ta.is_self) { %> disabled <% } %>>
+    </div>
+    <div class="fake-td">
+        <input type="checkbox" name="admin" value="true" <% if (ta.admin) { %>checked<% } %> <% if (ta.is_self || ta.email == owner_email) { %>disabled<% } %> id="admin_<%= ta.id %>" />
+        <label for="admin_<%= ta.id %>"></label>
     </div>
     <div class="fake-td" style="width: 1%; white-space:nowrap;">
         <input type="hidden" name="id" value="<%= ta.id %>">
         <button class="btn-flat waves-effect cyan white-text" name="action" value="UPDATETA">Update</button>
-        <% if (!ta.is_self && !ta.admin) { %>
+        <% if (!ta.is_self) { %>
         <button class="btn-flat waves-effect grey lighten-2 grey-text text-darken-3 remove-button" name="action" value="DELETETA">Delete</button>
         <% } %>
     </div>
@@ -93,12 +123,17 @@
     <form class="fake-tr" method="POST" style="background: none;">
     <div class="fake-td"><label for="name">Name</label><input type="text" name="name" required></div>
     <div class="fake-td"><label for="email">Email</label><input type="email" name="email" required></div>
+    <div class="fake-td">
+          <input type="checkbox" name="admin" value="true" id="admin_new" />
+          <label for="admin_new"></label>
+    </div>
     <div class="fake-td" style="width: 1%; white-space:nowrap;">
         <button class="btn-flat waves-effect cyan white-text" name="action" value="ADDTA">Add</button>
     </div>
     </form>
     </div></div>
 </div></div>
+<% } %>
 
 </div>
 <script type="text/javascript">

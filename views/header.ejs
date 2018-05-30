@@ -3,7 +3,7 @@
     <span class="brand-logo hide-on-large-only"><a href="/"><%= title %></a></span>
     <ul class="hide-on-med-and-down">
       <li class="brand-logo" style="position: initial;"><h1><a href="/"><%= title %></a></h1></li>
-      <% if (session && session.TA) { %>
+      <% if (session && (session.TA || session.owner)) { %>
       <li style="margin-left: 10px;"><form method="POST" action="/options">
       <% if (typeof frozen != 'undefined' && frozen) { %>
       <button class="waves-effect btn blue lighten-5 black-text freeze-btn freeze-input" name="frozen" value="0">Unfreeze</button>
@@ -16,8 +16,8 @@
     <ul class="right hide-on-med-and-down">
       <% if (session && session.authenticated) { %>
       <li><span class="blue-text text-lighten-4">Logged in as <%=session.user_id %></span>
-      <% if (session.TA) { %>
-      <% if (session.TA.admin) { %>
+      <% if (session.TA || session.owner) { %>
+      <% if (session.TA && session.TA.admin || session.owner) { %>
       <a class="waves-effect" href="/admin">Admin</a>
       <% } %>
       <a class="waves-effect" href="/metrics">Metrics</a>
@@ -31,7 +31,7 @@
     <ul id="nav-mobile" class="side-nav">
       <% if (session && session.authenticated) { %>
       <li class="cyan white-text" style="padding: 0px 20px;">Logged in as <%= session.user_id %></li>
-      <% if (session.TA) { %>
+      <% if (session.TA || session.owner) { %>
       <li><form method="POST" action="/options">
       <% if (typeof frozen != 'undefined' && frozen) { %>
       <input type="hidden" name="frozen" class="freeze-input" value="0">
@@ -42,8 +42,8 @@
       <% } %>
       </form></li>
       <% } %>
-      <% if (session.TA) { %>
-      <% if (session.TA.admin) { %>
+      <% if (session.TA || session.owner) { %>
+      <% if (session.TA && session.TA.admin || session.owner) { %>
       <li><a href="/admin">Admin</a></li>
       <% } %>
       <li><a href="/metrics">Metrics</a></li>
