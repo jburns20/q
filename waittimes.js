@@ -1,4 +1,5 @@
 var SlackWebhook = require("slack-webhook");
+var Sequelize = require('sequelize');
 
 var config = require("./config.json");
 var model = require("./model.js");
@@ -34,9 +35,9 @@ exports.update = function() {
     var entries = [];
     return model.TA.findAll({
         where: {
-            $or: [
-                {"helping_id": {not: null}},
-                {"updated_at": {gt: limit}}
+            [Sequelize.Op.or]: [
+                {"helping_id": {[Sequelize.Op.not]: null}},
+                {"updated_at": {[Sequelize.Op.gt]: limit}}
             ]
         },
         include: [{model: model.Entry, as: "helping_entry"}]
@@ -49,7 +50,7 @@ exports.update = function() {
             throw new Error();
         }
         return model.Entry.findAll({
-            where: {status: {lt: 2}},
+            where: {status: {[Sequelize.Op.lt]: 2}},
             order: [['entry_time', 'ASC']]
         });
     }).then(function(results) {

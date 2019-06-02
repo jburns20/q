@@ -1,4 +1,3 @@
-var async = require('async');
 var crypto = require('crypto');
 var Sequelize = require('sequelize');
 
@@ -51,22 +50,22 @@ exports.get = function(req, res) {
                     return Promise.resolve(entries_cache);
                 }
                 return model.Entry.findAll({
-                    where: {status: {lt: 2}},
+                    where: {status: {[Sequelize.Op.lt]: 2}},
                     include: [{model: model.TA, as: "TA"},
                               {model: model.Topic}],
                     order: [['entry_time', 'ASC']]
                 })
             }(),
             topics: function() {
-                //only req-query the database at most once an hour
+                //only re-query the database at most once an hour
                 if (topics_cache && topics_cache_updated > new Date(new Date().getTime() - 1000*60*60)) {
                     return Promise.resolve(topics_cache);
                 }
                 //our cache is out-of-date (or doesn't exist), query the database
                 return model.Topic.findAll({
                     where: {
-                        out_date: {lt: new Date()},
-                        due_date: {gt: new Date()}
+                        out_date: {[Sequelize.Op.lt]: new Date()},
+                        due_date: {[Sequelize.Op.gt]: new Date()}
                     },
                     order: [['due_date', 'ASC']]
                 })
@@ -128,13 +127,13 @@ function post_add(req, res) {
     }).then(function() {
         // Make sure the user isn't already on the queue
         return model.Entry.findOne({
-            where: {status: {lt: 2}, user_id: user_id},
+            where: {status: {[Sequelize.Op.lt]: 2}, user_id: user_id},
         });
     }).then(function(result) {
         if (result) {
             throw new Error("You are already on the queue");
         } else {
-            return model.Topic.findById(topic_id);
+            return model.Topic.findByPk(topic_id);
         }
     }).then(function(result) {
         if (result == null && topic_id == 0) {
@@ -204,7 +203,7 @@ function post_rem(req, res) {
     var entry = null;
 
     // Find the entry that should be removed
-    model.Entry.findById(id).then(function(instance) {
+    model.Entry.findByPk(id).then(function(instance) {
         if (!instance) {
             throw new Error("There is no entry with that ID");
         }
@@ -241,7 +240,7 @@ function post_help(req, res) {
         if (req.session.TA.helping_id) {
             throw new Error("You are already helping a student");
         }
-        return model.Entry.findById(id, {
+        return model.Entry.findByPk(id, {
             transaction: t
         }).then(function(entry) {
             if (!entry) {
@@ -286,7 +285,7 @@ function post_cancel(req, res) {
         if (!p.is_ta(req) && !p.is_admin(req)) {
             throw new Error("You don't have permission to cancel helping that student");
         }
-        return model.Entry.findById(id, {
+        return model.Entry.findByPk(id, {
             include: [{model: model.TA, as: "TA"}],
             transaction: t
         }).then(function(entry) {
@@ -324,7 +323,7 @@ function post_done(req, res) {
         if (!p.is_ta(req)) {
             throw new Error("You don't have permission to finish helping that student");
         }
-        return model.Entry.findById(id, {
+        return model.Entry.findByPk(id, {
             include: [{model: model.TA, as: "TA"}],
             transaction: t
         }).then(function(entry) {

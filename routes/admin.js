@@ -97,7 +97,7 @@ function post_add_topic(req, res) {
 
 function post_delete_topic(req, res) {
     var id = req.body.id;
-    model.Topic.findById(id).then(function(instance) {
+    model.Topic.findByPk(id).then(function(instance) {
         if (!instance) {
             throw new Error("There is no topic with that ID");
         }
@@ -116,7 +116,7 @@ function post_update_topic(req, res) {
     var name;
     var out_date;
     var due_date;
-    model.Topic.findById(id).then(function(instance) {
+    model.Topic.findByPk(id).then(function(instance) {
         if (!instance) {
             throw new Error("There is no topic with that ID");
         }
@@ -191,7 +191,7 @@ function post_delete_ta(req, res) {
         respond(req, res, "Error: Cannot delete yourself");
         return;
     }
-    model.TA.findById(id).then(function(instance) {
+    model.TA.findByPk(id).then(function(instance) {
         if (!instance) {
             throw new Error("There is no topic with that ID");
         }
@@ -212,7 +212,7 @@ function post_update_ta(req, res) {
     var email;
     var instance;
     var updated_fields;
-    model.TA.findById(id).then(function(inst) {
+    model.TA.findByPk(id).then(function(inst) {
         if (!inst) {
             throw new Error("There is no TA with that ID");
         }

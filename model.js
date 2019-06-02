@@ -2,6 +2,7 @@ var Sequelize = require('sequelize');
 var config = require("./config.json");
 var sequelize = new Sequelize(
     config.mysql_db, config.mysql_user, config.mysql_pass, {
+    dialect: 'mysql',
     logging: false,
     underscored: true,
     timezone: config.timezone

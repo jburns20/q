@@ -151,19 +151,19 @@ function post_prop_update(req, key, prev_value, value) {
                 return Promise.resolve(null);
             }).then(function() {
                 return model.Session.destroy({
-                    where: {ta_id: {$gte: 0}},
+                    where: {ta_id: {[Sequelize.Op.gte]: 0}},
                     transaction: t
                 })
             }).then(function() {
                 return model.Entry.destroy({
-                    where: {status: {$lt: 2}},
+                    where: {status: {[Sequelize.Op.lt]: 2}},
                     transaction: t
                 });
             }).then(function() {
                 return model.TA.update({
                     helping_id: null
                 }, {
-                    where: {id: {$gte: 0}},
+                    where: {id: {[Sequelize.Op.gte]: 0}},
                     transaction: t
                 });
             })
