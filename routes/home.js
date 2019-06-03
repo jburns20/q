@@ -22,6 +22,11 @@ exports.clear_topics_cache = function() {
     topics_cache_updated = new Date(0);
 }
 
+function is_stack_domain(req) {
+    var host = req.get('host');
+    return host.includes("stack");
+}
+
 exports.get = function(req, res) {
     // If we need to display a toast on this request, it'll be in a cookie.
     // Store the message and clear the cookie so the user only sees it once.
@@ -31,13 +36,15 @@ exports.get = function(req, res) {
         res.clearCookie("toast");
     }
 
+    var current_title = is_stack_domain(req) ? "15-122 Office Hours Stack" : config.title;
+
     options.current_semester().then(function(sem) {
         if (sem == "") {
             if (req.session && req.session.owner) {
                 res.redirect("/admin");
             } else {
                 res.render("splash", {
-                    title: config.title,
+                    title: current_title,
                     session: req.session,
                     toast: toast
                 });
@@ -47,7 +54,7 @@ exports.get = function(req, res) {
         Sequelize.Promise.props({
             entries: function() {
                 //don't re-query the database if nothing has changed
-                if (entries_cache) {
+		if (entries_cache) {
                     return Promise.resolve(entries_cache);
                 }
                 return model.Entry.findAll({
@@ -55,7 +62,7 @@ exports.get = function(req, res) {
                     include: [{model: model.TA, as: "TA"},
                               {model: model.Topic}],
                     order: [['entry_time', 'ASC']]
-                })
+                });
             }(),
             topics: function() {
                 //only req-query the database at most once an hour
@@ -81,7 +88,7 @@ exports.get = function(req, res) {
                 topics_cache_updated = new Date();
             }
             res.render("home", {
-                title: config.title,
+                title: current_title,
                 session: req.session,
                 entries: results.entries,
                 topics: results.topics,
@@ -89,7 +96,8 @@ exports.get = function(req, res) {
                 frozen: results.frozen,
                 message: results.message,
                 waittimes: waittimes.get(),
-                toast: toast
+                toast: toast,
+		structure_name: is_stack_domain(req) ? "stack" : "queue"
             });
         });
     });

@@ -140,7 +140,7 @@ function updateStatus() {
     if (me.length > 0) {
         var ahead = me.prevAll().length;
         if (ahead == 0) {
-            statushtml += "You're currently first in the queue.";
+            statushtml += "You're currently first in the " + structure_name + ".";
         } else if (ahead == 1) {
             statushtml += "There is 1 student ahead of you.";
         } else {
@@ -156,11 +156,11 @@ function updateStatus() {
     } else {
         var ahead = $("#queue").children().length;
         if (ahead == 0) {
-            statushtml += "There are no students on the queue.";
+            statushtml += "There are no students on the " + structure_name + ".";
         } else if (ahead == 1) {
-            statushtml += "There is 1 student on the queue.";
+            statushtml += "There is 1 student on the " + structure_name + ".";
         } else {
-            statushtml += "There are " + ahead + " students on the queue.";
+            statushtml += "There are " + ahead + " students on the " + structure_name + ".";
         }
         if (waittimes.length == ahead+1) {
             var time = Math.ceil(waittimes[ahead]/60);

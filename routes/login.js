@@ -10,6 +10,16 @@ var options = require("./options.js");
 var oauth2Client = new OAuth2(config.google_id, config.google_secret,
   config.protocol + "://" + config.domain + "/oauth2/callback"
 );
+
+var stack_oauth2Client = new OAuth2(config.google_id, config.google_secret,
+  config.protocol + "://" + "stack.15122.tk" + "/oauth2/callback"
+);
+
+function is_stack_domain(req) {
+    var host = req.get('host');
+    return host.includes("stack");
+}
+
 var auth_url = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"],
   hd: "andrew.cmu.edu"
@@ -18,13 +28,21 @@ var auth_url_nodomaincheck = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"]
 });
 
+var stack_auth_url = stack_oauth2Client.generateAuthUrl({
+  scope: ["profile", "email"],
+  hd: "andrew.cmu.edu"
+});
+var stack_auth_url_nodomaincheck = stack_oauth2Client.generateAuthUrl({
+  scope: ["profile", "email"]
+});
+
 exports.get_login = function(req, res) {
     if (req.session && req.session.authenticated) {
         res.redirect("/");
     } else if (req.query.domaincheck == 0) {
-        res.redirect(auth_url_nodomaincheck);
+        res.redirect(is_stack_domain(req) ? stack_auth_url_nodomaincheck : auth_url_nodomaincheck);
     } else {
-        res.redirect(auth_url);
+        res.redirect(is_stack_domain(req) ? stack_auth_url : auth_url);
     }
 };
 
@@ -32,7 +50,11 @@ exports.get_callback = function(req, res) {
     var key = crypto.randomBytes(72).toString('base64');
     async.waterfall([
         function(callback) {
-            oauth2Client.getToken(req.query.code, callback);
+	    if (is_stack_domain(req)) {
+            	stack_oauth2Client.getToken(req.query.code, callback);
+            } else {
+		oauth2Client.getToken(req.query.code, callback);
+	    }
         },
         function(tokens, something, callback) {
             google.oauth2("v2").userinfo.get({

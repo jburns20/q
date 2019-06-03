@@ -36,9 +36,9 @@
   <div id="add_form">
   <h6 class="center" style="font-size: 120%;">
     <%_ if (session && (session.TA || session.owner)) { _%>
-    Add a student to the queue:
+    Add a student to the <%=structure_name %>:
     <%_ } else { _%>
-    Add your name to the queue:
+    Add your name to the <%=structure_name %>:
     <%_ } _%>
   </h6>
   <form method="POST" class="row">
@@ -76,7 +76,7 @@
   </form>
   </div>
   <h6 id="frozen_message" class="center" style="font-size: 120%;">
-    The queue is <strong>frozen</strong>. No new signups are allowed.
+    The <%=structure_name %> is <strong>frozen</strong>. No new signups are allowed.
   </h6>
 </div>
 
@@ -84,6 +84,7 @@
 <script type="text/javascript" src="/js/client.js"></script>
 <script type="text/javascript">
 
+var structure_name = "<%=structure_name %>";
 var seq = <%= seq %>;
 <%_ if (session && session.TA) { _%>
 var ta_id = <%= session.TA.id %>;
