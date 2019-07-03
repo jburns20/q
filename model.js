@@ -70,8 +70,12 @@ exports.Option = sequelize.define("option", {
 
 // Relationships
 
-exports.Entry.belongsTo(exports.Session);
-exports.Entry.belongsTo(exports.Topic);
+exports.Entry.belongsTo(exports.Session, {
+    foreignKey: "session_id"
+});
+exports.Entry.belongsTo(exports.Topic, {
+    foreignKey: "topic_id"
+});
 exports.Topic.hasMany(exports.Entry);
 exports.Entry.belongsTo(exports.TA, {
     as: "TA",
