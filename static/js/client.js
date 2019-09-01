@@ -208,11 +208,7 @@ $(document).on("submit", "form", function(event) {
 socket.on("add", function(message) {
     // notification on add for ta
     if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
-        var notification = new Notification("New Queue Entry",
-            {"body": "Name: " + message.data.name + "\n" +
-                     "Andrew ID: " + message.data.user_id + "\n" +
-                     "Topic: " + message.data.topic_name
-            });
+        const notification = new Notification("New Queue Entry");
     }
     if (message.seq != seq + 1) {
         window.location.reload();
