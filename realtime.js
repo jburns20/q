@@ -18,7 +18,7 @@ exports.init = function(app) {
                 return;
             }
             model.Session.findOne({
-                where: {session_key: JSON.stringify(auth)},
+                where: {session_key: String(auth)},
                 include: [{model: model.TA, as: "TA"}]
             }).then(function(user) {
                 if (user) {

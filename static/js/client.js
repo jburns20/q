@@ -189,6 +189,14 @@ function getCookie(cname) {
     return "";
 }
 
+function checkAndUpdateSeq(message_seq) {
+    if (message_seq != seq + 1) {
+        window.location.reload();
+        throw new Error("Queue data is out of date. Reloading...");
+    }
+    seq = message_seq;
+}
+
 var socket = io();
 socket.on("connect", function () {
     socket.emit("authenticate", unescape(getCookie("auth")));
@@ -207,17 +215,18 @@ $(document).on("submit", "form", function(event) {
 
 socket.on("add", function(message) {
     // notification on add for ta
-    if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
-        var notification = new Notification("New Queue Entry",
-            {"body": "Name: " + message.data.name + "\n" +
-                     "Andrew ID: " + message.data.user_id + "\n" +
-                     "Topic: " + message.data.topic_name
-            });
+    try {
+        if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
+            var notification = new Notification("New Queue Entry",
+                {"body": "Name: " + message.data.name + "\n" +
+                        "Andrew ID: " + message.data.user_id + "\n" +
+                        "Topic: " + message.data.topic_name
+                });
+        }
+    } catch (error) {
+        console.log("There was an error showing a browser notification.");
     }
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     var elt = null;
     if (ta_id || is_owner) {
         elt = buildTAEntry(message.data);
@@ -227,14 +236,10 @@ socket.on("add", function(message) {
     $("#queue").append(elt);
     positionOverlay();
     updateStatus();
-    seq = message.seq;
 });
 
 socket.on("remove", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
             if ($(item).hasClass("me")) {
@@ -245,14 +250,10 @@ socket.on("remove", function(message) {
     });
     positionOverlay();
     updateStatus();
-    seq = message.seq;
 });
 
 socket.on("help", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     if (ta_id == message.data.ta_id) {
         //you just started helping someone, this changes everything so reload
         window.location.reload();
@@ -268,14 +269,10 @@ socket.on("help", function(message) {
             }
         }
     });
-    seq = message.seq;
 });
 
 socket.on("cancel", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     if (ta_id == message.data.ta_id) {
         //you just cancelled helping someone, this changes everything so reload
         window.location.reload();
@@ -292,14 +289,10 @@ socket.on("cancel", function(message) {
             }
         }
     });
-    seq = message.seq;
 });
 
 socket.on("done", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     if (ta_id == message.data.ta_id) {
         //you just finished helping someone, this changes everything so reload
         window.location.reload();
@@ -315,14 +308,10 @@ socket.on("done", function(message) {
     });
     positionOverlay();
     updateStatus();
-    seq = message.seq;
 });
 
 socket.on("option", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     if (message.key == "frozen") {
         if (message.value == "1") {
             $("#frozen_message").show();
@@ -349,16 +338,11 @@ socket.on("option", function(message) {
         }
         $("#message_content").html(message.value);
     }
-    seq = message.seq;
 });
 
 socket.on("waittimes", function(message) {
-    if (message.seq != seq + 1) {
-        window.location.reload();
-        return;
-    }
+    checkAndUpdateSeq(message.seq);
     console.log("Got wait times: " + message.times);
     waittimes = message.times;
     updateStatus();
-    seq = message.seq;
 });
