@@ -55,7 +55,8 @@ exports.add = function(entry) {
             user_id: entry.user_id,
             ta_id: entry.TA ? entry.TA.id : null,
             topic_name: entry.topic ? entry.topic.name : "other",
-            ta_full_name: entry.TA ? entry.TA.full_name : null
+            ta_full_name: entry.TA ? entry.TA.full_name : null,
+            question: entry.question
         }
     });
 };
