@@ -42,7 +42,7 @@
     <%_ } _%>
   </h6>
   <form method="POST" class="row">
-  <div class="input-field inline col l4 m6 s12">
+  <div class="input-field inline col l4 m4 s12">
     <input id="name" name="name" type="text" required
     <%_ if (session && !session.TA && !session.owner) { _%>
     value="<%= session.name %>"
@@ -50,7 +50,7 @@
     >
     <label for="name">Name</label>
   </div>
-  <div class="input-field inline col l3 m6 s12">
+  <div class="input-field inline col l4 m4 s12">
     <input id="user_id" name="user_id" type="text" pattern="[A-Za-z0-9]*" minlength=3 maxlength=8 required
     <%_ if (session && !session.TA && !session.owner) { _%>
     value="<%= session.user_id %>"
@@ -60,7 +60,7 @@
     >
     <label for="user_id">Andrew ID</label>
   </div>
-  <div class="input-field inline col l3 m6 s12">
+  <div class="input-field inline col l4 m4 s12">
     <select novalidate id="topic" name="topic_id">
         <option value="" disabled selected hidden>Choose a topic</option>
       <%_ topics.forEach(function(topic) { _%>
@@ -69,6 +69,10 @@
         <option value="0">other</option>
     </select>
     <label for="topic">What would you like help with?</label>
+  </div>
+  <div class="input-field inline col l10 m10 s12">
+      <input id="question" name="question" type="text" minlength=3 required>
+      <label for="question">Question</label>
   </div>
   <div class="input-field inline col l2 m2 s12 center-btn">
     <button class="waves-effect waves-light btn cyan" name="action" value="ADD">Enter</button>
@@ -110,7 +114,8 @@ $(document).ready(function() {
         name: entry.name,
         user_id: entry.user_id,
         topic_name: entry.topic ? entry.topic.name : "other",
-        ta_full_name: entry.TA ? entry.TA.full_name : ""
+        ta_full_name: entry.TA ? entry.TA.full_name : "",
+        question: entry.question
     }); %>));
   <%_ } else if (session && (session.TA || session.owner)) { _%>
     $("#queue").append(buildTAEntry(<%- JSON.stringify({
@@ -120,7 +125,8 @@ $(document).ready(function() {
         user_id: entry.user_id,
         ta_id: entry.TA ? entry.TA.id : null,
         topic_name: entry.topic ? entry.topic.name : "other",
-        ta_full_name: entry.TA ? entry.TA.full_name : ""
+        ta_full_name: entry.TA ? entry.TA.full_name : "",
+        question: entry.question
     }); %>));
   <%_ } else { _%>
     $("#queue").append(buildStudentEntry(<%- JSON.stringify({

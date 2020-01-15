@@ -49,12 +49,14 @@ exports.get = function(req, res) {
                 if (entries_cache) {
                     return Promise.resolve(entries_cache);
                 }
-                return model.Entry.findAll({
+                var temp = model.Entry.findAll({
                     where: {status: {[Sequelize.Op.lt]: 2}},
                     include: [{model: model.TA, as: "TA"},
                               {model: model.Topic}],
                     order: [['entry_time', 'ASC']]
                 })
+                console.log(temp)
+                return temp
             }(),
             topics: function() {
                 //only re-query the database at most once an hour
@@ -109,6 +111,7 @@ function post_add(req, res) {
     var name = req.body.name;
     var user_id = req.body.user_id.toLowerCase();
     var topic_id = req.body.topic_id;
+    var question = req.body.question;
     var topic = null;
     new Promise(function(resolve, reject) {
         // A valid user ID is between 3 and 8 alphanumeric characters, and
@@ -176,6 +179,8 @@ function post_add(req, res) {
         if (times.length > 0) {
             estimate = times[times.length-1];
         }
+        console.log("HERE");
+        console.log(question);
         return model.Entry.create({
             user_id: user_id,
             name: name,
@@ -184,7 +189,8 @@ function post_add(req, res) {
             wait_estimate: estimate,
             status: 0,
             session_id: (p.is_ta(req) || p.is_admin(req)) ? null : req.session.id,
-            topic_id: topic_id
+            topic_id: topic_id,
+            question: question
         });
     }).then(function(instance) {
         entries_cache = null;
