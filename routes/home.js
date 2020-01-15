@@ -49,14 +49,12 @@ exports.get = function(req, res) {
                 if (entries_cache) {
                     return Promise.resolve(entries_cache);
                 }
-                var temp = model.Entry.findAll({
+                return model.Entry.findAll({
                     where: {status: {[Sequelize.Op.lt]: 2}},
                     include: [{model: model.TA, as: "TA"},
                               {model: model.Topic}],
                     order: [['entry_time', 'ASC']]
                 })
-                console.log(temp)
-                return temp
             }(),
             topics: function() {
                 //only re-query the database at most once an hour
@@ -179,8 +177,6 @@ function post_add(req, res) {
         if (times.length > 0) {
             estimate = times[times.length-1];
         }
-        console.log("HERE");
-        console.log(question);
         return model.Entry.create({
             user_id: user_id,
             name: name,
