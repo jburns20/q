@@ -115,7 +115,7 @@ function post_add(req, res) {
         // A valid user ID is between 3 and 8 alphanumeric characters, and
         // if the user is logged in (and isn't a TA), then it must match
         // the account they're logged in with.
-        if (!user_id || user_id.length < 3 || user_id.length > 8
+        if (!user_id || user_id.length < 3 || user_id.length > 8 || question.length < 2
                 || !RegExp("^[A-Za-z0-9]*$").test(user_id)
                 || (p.is_logged_in(req) && !p.is_ta(req) && req.session.user_id != user_id)) {
             throw new Error("Invalid Andrew ID");
