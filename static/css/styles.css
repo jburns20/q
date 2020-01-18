@@ -110,6 +110,11 @@ input {
     line-height: 36px;
     width: 200px;
 }
+
+div.question-content {
+    line-height: normal;
+    width: 400px;
+}
 }
 
 .btn-flat.x-button {

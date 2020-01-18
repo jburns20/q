@@ -109,6 +109,7 @@ function post_add(req, res) {
     var name = req.body.name;
     var user_id = req.body.user_id.toLowerCase();
     var topic_id = req.body.topic_id;
+    var question = req.body.question;
     var topic = null;
     new Promise(function(resolve, reject) {
         // A valid user ID is between 3 and 8 alphanumeric characters, and
@@ -122,6 +123,9 @@ function post_add(req, res) {
         // A valid name is just any non-empty string.
         if (!name || name.length < 1) {
             throw new Error("Invalid Name");
+        }
+        if (question.length < 2) {
+            throw new Error("Invalid Question");
         }
         resolve();
     }).then(function() {
@@ -184,7 +188,8 @@ function post_add(req, res) {
             wait_estimate: estimate,
             status: 0,
             session_id: (p.is_ta(req) || p.is_admin(req)) ? null : req.session.id,
-            topic_id: topic_id
+            topic_id: topic_id,
+            question: question
         });
     }).then(function(instance) {
         entries_cache = null;

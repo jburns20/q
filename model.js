@@ -46,7 +46,8 @@ exports.Entry = sequelize.define("entry", {
     "help_time": Sequelize.DATE,
     "exit_time": Sequelize.DATE,
     "wait_estimate": Sequelize.INTEGER,
-    "status": Sequelize.INTEGER  //0: on queue, 1: being helped, 2: helped
+    "status": Sequelize.INTEGER,  //0: on queue, 1: being helped, 2: helped
+    "question": Sequelize.STRING
 }, {
     timestamps: false,
     underscored: true
