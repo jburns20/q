@@ -104,10 +104,6 @@ input {
     float: left;
 }
 
-.question-content {
-    line-height: normal;
-}
-
 @media only screen and (min-width: 801px) {
 .primary-content div {
     float: left;
@@ -115,10 +111,9 @@ input {
     width: 200px;
 }
 
-.question-content {
-    line-height: normal !important;
-    width: 400px !important;
-    float: left;
+div.question-content {
+    line-height: normal;
+    width: 400px;
 }
 }
 
