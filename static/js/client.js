@@ -1,16 +1,30 @@
-var entryHtml = "<li class='collection-item'><form method='POST'>"
-              + "<input type='hidden' class='id-input' name='entry_id'>"
-              + "<div class='primary-content'>&nbsp;</div>"
-              + "<div class='secondary-content'>"
-              + "<span class='right helping-text'></span>"
-              + "</div>"
-              + "<div class='clear'></div>"
-              + "</form></li>";
+const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
+const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
+const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
+const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
 
-var removeHtml = "<button class='waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2 remove-button' name='action' value='REM'>Remove</button>";
-var cancelHtml = "<button class='waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
-var doneHtml = "<button class='waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
-var helpHtml = "<button class='waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
+const entryHtml = `
+    <li class='collection-item'>
+        <form method='POST'>
+            <div class='helping-text teal-text lighten-1'></div>
+            <div class='entry-container'>
+                <input type='hidden' class='id-input' name='entry_id'>
+                <div class='entry-item entry-container entry-text'>
+                    <div class='entry-item entry-name'></div>
+                    <div class='entry-item entry-question'></div>
+                </div>
+                <div class='entry-item entry-spacer'></div>
+                <div class='entry-item entry-container entry-buttons'>
+                    ${removeHtml}
+                    ${helpHtml}
+                    ${cancelHtml}
+                    ${doneHtml}
+                </div>
+            </div>
+        </form>
+    </li>
+`;
+
 var xHtml = "<button class='waves-effect waves btn-flat grey lighten-2 black-text x-button' name='action' value='CANCEL'>X</button>";
 
 var mq;
@@ -62,22 +76,21 @@ function buildTAEntry(entry) {
     var elt = $(entryHtml);
     elt.data("entryId", entry.id);
     elt.find(".id-input").val(entry.id);
-    elt.find(".primary-content").html(
-        "<div>" + entry.name + " (" + entry.user_id + ")</div>"
-        + "<div class=\"question-content\">[" + entry.topic_name + "] " + entry.question + "</div>"
-    );
+    elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
+    elt.find(".entry-question").html(`[${entry.topic_name}] ${entry.question}`);
 
     if (entry.status == 1 && ta_id == entry.ta_id) {
-        elt.find(".helping-text").text("You are helping")
-            .after($("<br>" + cancelHtml + "&nbsp;" + doneHtml));
+        elt.find(".cancel-button").removeClass("hide");
+        elt.find(".done-button").removeClass("hide");
+        elt.find(".helping-text").text("You are helping");
     } else if (entry.status == 1) {
-        elt.find(".helping-text").html(entry.ta_full_name + " is helping " + xHtml);
+        elt.find(".helping-text").html(`${entry.ta_full_name} is helping ${xHtml}`);
     } else if (!ta_helping_id) {
         if (ta_id) {
-            elt.find(".helping-text")
-                .after($(removeHtml + "&nbsp;" + helpHtml));
+            elt.find(".remove-button").removeClass("hide");
+            elt.find(".help-button").removeClass("hide");
         } else {
-            elt.find(".helping-text").after($(removeHtml));
+            elt.find(".remove-button").removeClass("hide");
         }
     }
     return elt;
@@ -89,14 +102,13 @@ function buildMyEntry(entry) {
     elt.addClass("me");
     elt.data("entryId", entry.id);
     elt.find(".id-input").val(entry.id);
-    elt.find(".primary-content").html(
-        "<div>" + entry.name + " (" + entry.user_id + ")</div>"
-      + "<div class=\"question-content\"> [" + entry.topic_name + "] " + entry.question + "</div>"
-    );
+    elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
+    elt.find(".entry-question").html(`[${entry.topic_name}] ${entry.question}`);
+
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");
     } else {
-        elt.find(".helping-text").after($(removeHtml));
+        elt.find(".remove-button").removeClass("hide");
     }
     return elt;
 }
@@ -261,8 +273,7 @@ socket.on("help", function(message) {
     }
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
-            $(item).find("button").remove();
-            $(item).find("br").remove();
+            $(item).find("button").addClass("hide");
             $(item).find(".helping-text").text(message.data.ta_full_name + " is helping");
             if (ta_id) {
                 $(item).find(".helping-text").append(xHtml);
@@ -282,10 +293,10 @@ socket.on("cancel", function(message) {
         if ($(item).data("entryId") == message.id) {
             $(item).find(".helping-text").text("");
             if ($(item).hasClass("me")) {
-                $(item).find(".helping-text").after($(removeHtml));
+                $(item).find(".remove-button").removeClass("hide");
             } else if (ta_id && !ta_helping_id) {
-                $(item).find(".helping-text")
-                    .after($(removeHtml + "&nbsp;" + helpHtml));
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".help-button").removeClass("hide");
             }
         }
     });

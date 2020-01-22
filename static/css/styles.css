@@ -84,6 +84,7 @@ input {
     border-left: 1px solid #e0e0e0;
     border-right: 1px solid #e0e0e0;
     margin: 0px 10px;
+    min-height: 45px;
 }
 
 .collection .collection-item:first-child {
@@ -100,21 +101,58 @@ input {
     padding: 10px 30px;
 }
 
-.primary-content {
-    float: left;
+.helping-text:not(:empty) {
+    margin: 0 5px 5px 0;
+    text-align: right;
 }
 
-@media only screen and (min-width: 801px) {
-.primary-content div {
-    float: left;
-    line-height: 36px;
+.entry-container {
+    display: flex;
+    align-items: center;
+}
+
+.entry-item {
+    flex-shrink: 0;
+    margin: 0 5px;
+}
+
+.entry-text {
+    flex-shrink: 1;
+}
+
+.entry-name {
     width: 200px;
 }
 
-div.question-content {
+.entry-question {
     line-height: normal;
-    width: 400px;
+    flex-shrink: 1;
 }
+
+@media only screen and (max-width: 800px) {
+    /* Allow question text to fall underneath name on small viewports. */
+    .entry-text {
+        flex-wrap: wrap;
+    }
+
+    .entry-name {
+        width: 130px;
+        margin-bottom: 10px;
+    }
+
+    /* Stack buttons vertically on small viewports. */
+    .entry-buttons {
+        flex-direction: column;
+    }
+
+    .entry-buttons button {
+        margin: 5px;
+    }
+}
+
+/* Grow when possible to push the buttons to the right. */
+.entry-spacer {
+    flex-grow: 1;
 }
 
 .btn-flat.x-button {
@@ -229,4 +267,8 @@ input.flatpickr-input[type=text]:focus {
 
 .clear {
     clear: both;
+}
+
+.hide {
+    display: none;
 }
