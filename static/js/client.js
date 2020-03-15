@@ -212,13 +212,11 @@ function checkAndUpdateSeq(message_seq) {
 var socket = io();
 socket.on("connect", function () {
     socket.emit("authenticate", unescape(getCookie("auth")));
-    if (ta_id) {
-        // notification permission request on connect if is ta
-        if (!("Notification" in window)) {
-            console.log("This browser does not support desktop notification");
-        } else if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
+    // notification permission request on connect
+    if (!("Notification" in window)) {
+        console.log("This browser does not support desktop notification");
+    } else if (Notification.permission !== "granted") {
+        Notification.requestPermission();
     }
 });
 $(document).on("submit", "form", function(event) {
@@ -229,11 +227,11 @@ socket.on("add", function(message) {
     // notification on add for ta
     try {
         if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
-            var notification = new Notification("New Queue Entry",
-                {"body": "Name: " + message.data.name + "\n" +
+            var notification = new Notification("New Queue Entry", {
+                "body": "Name: " + message.data.name + "\n" +
                         "Andrew ID: " + message.data.user_id + "\n" +
                         "Topic: " + message.data.topic_name
-                });
+            });
         }
     } catch (error) {
         console.log("There was an error showing a browser notification.");
@@ -277,6 +275,15 @@ socket.on("help", function(message) {
             $(item).find(".helping-text").text(message.data.ta_full_name + " is helping");
             if (ta_id) {
                 $(item).find(".helping-text").append(xHtml);
+            }
+            try {
+                if ($(item).hasClass("me") && ("Notification" in window) && (Notification.permission == "granted") ) {
+                    var notification = new Notification("It's your turn to get help!", {
+                        "body": message.data.ta_full_name + " is ready to help you."
+                    });
+                }
+            } catch (error) {
+                console.log("There was an error showing a browser notification.");
             }
         }
     });
