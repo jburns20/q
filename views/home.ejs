@@ -84,6 +84,17 @@
   </h6>
 </div>
 
+<div id="help_modal" class="modal">
+  <div class="modal-content center-align">
+    <h4>It's your turn to get help!</h4>
+    <p><span id="modal_ta_name"></span> is ready to help you.</p>
+    <a id="modal_ta_video_chat_url" href="javascript:;" target="_blank"><button class="waves-effect waves-light btn cyan">Join Video Chat</button></a>
+  </div>
+  <div class="modal-footer">
+    <a href="javascript:;" class="modal-close waves-effect light-blue-text text-darken-1 btn-flat">Done</a>
+  </div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="/js/client.js"></script>
 <script type="text/javascript">
@@ -101,7 +112,10 @@ var waittimes = <%- JSON.stringify(waittimes); -%>;
 
 $(document).ready(function() {
   <%_ if (toast) { _%>
-    Materialize.toast("<%= toast %>", 4000);
+    M.toast({
+        html: "<%= toast %>",
+        duration: 4000
+    });
   <%_ } _%>
 
 <%_ var sawSelf = false; _%>
@@ -117,6 +131,11 @@ $(document).ready(function() {
         ta_full_name: entry.TA ? entry.TA.full_name : "",
         question: entry.question
     }); %>));
+    <%_ if (entry.status == 1) { %>
+      $("#modal_ta_name").text("<%= entry.TA.full_name %>");
+      $("#modal_ta_video_chat_url").attr("href", "<%= entry.TA.video_chat_url %>");
+      M.Modal.getInstance($("#help_modal")).open();
+    <%_ } %>
   <%_ } else if (session && (session.TA || session.owner)) { _%>
     $("#queue").append(buildTAEntry(<%- JSON.stringify({
         id: entry.id,

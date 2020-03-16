@@ -27,6 +27,7 @@ exports.Session = sequelize.define("session", {
 exports.TA = sequelize.define("tas", {
     "email": Sequelize.STRING,
     "full_name": Sequelize.STRING,
+    "video_chat_url": Sequelize.STRING,
     "semester": Sequelize.STRING,
     "time_helped": Sequelize.INTEGER,
     "num_helped": Sequelize.INTEGER,

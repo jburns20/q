@@ -84,7 +84,8 @@ exports.help = function(entry_id, ta) {
         id: entry_id,
         data: {
             ta_id: ta.id,
-            ta_full_name: ta.full_name
+            ta_full_name: ta.full_name,
+            ta_video_chat_url: ta.video_chat_url
         }
     });
 };

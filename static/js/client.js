@@ -30,7 +30,9 @@ var xHtml = "<button class='waves-effect waves btn-flat grey lighten-2 black-tex
 var mq;
 
 $(document).ready(function() {
-    $('select').material_select();
+    $('select').formSelect();
+    $('.modal').modal();
+
     $(document).on("click", ".remove-button", function(event) {
         if (!$(this).hasClass("confirming")) {
             $(".confirming").each(function() {
@@ -276,14 +278,19 @@ socket.on("help", function(message) {
             if (ta_id) {
                 $(item).find(".helping-text").append(xHtml);
             }
-            try {
-                if ($(item).hasClass("me") && ("Notification" in window) && (Notification.permission == "granted") ) {
-                    var notification = new Notification("It's your turn to get help!", {
-                        "body": message.data.ta_full_name + " is ready to help you."
-                    });
+            if ($(item).hasClass("me")) {
+                try {
+                    if (("Notification" in window) && (Notification.permission == "granted")) {
+                        var notification = new Notification("It's your turn to get help!", {
+                            "body": message.data.ta_full_name + " is ready to help you."
+                        });
+                    }
+                } catch (error) {
+                    console.log("There was an error showing a browser notification.");
                 }
-            } catch (error) {
-                console.log("There was an error showing a browser notification.");
+                $("#modal_ta_name").text(message.data.ta_full_name);
+                $("#modal_ta_video_chat_url").attr("href", message.data.ta_video_chat_url);
+                M.Modal.getInstance($("#help_modal")).open();
             }
         }
     });
@@ -301,6 +308,7 @@ socket.on("cancel", function(message) {
             $(item).find(".helping-text").text("");
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
+                M.Modal.getInstance($("#help_modal")).close();
             } else if (ta_id && !ta_helping_id) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".help-button").removeClass("hide");

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<%- include("head.ejs") %>
+<body>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.2.3/flatpickr.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.2.3/flatpickr.min.js"></script>
+<%- include("header.ejs") %>
+<div class="container">
+<h2>Settings</h2>
+
+<% function is_not_admin(ta) {
+    return !ta.admin;
+} %>
+
+<% if (is_ta) { %>
+<div class="card"><div class="card-content">
+    <h3 class="card-title">TA Settings</h3>
+    <form method="POST" class="row" style="margin-bottom: 0px;">
+        <div class="input-field col m10 s12">
+            <input id="video_chat_url" name="video_chat_url" type="url" value="<%= video_chat_url %>"></input>
+            <label for="video_chat_url">Video Chat URL to show students when you begin helping them</label>
+        </div>
+        <div class="input-field inline col m2 s12 center-btn">
+            <button type="submit" class='btn waves-effect waves-light cyan' name="action" value="UPDATEURL">Save</button>
+        </div>
+    </form>
+    <p>Students will be directed to this URL when you click "Help" next to their entry.</p>
+</div></div>
+<% } %>
+
+<% if (is_admin) { %>
+    <% if (current_semester == "" || topics.length == 0 || tas.length == 0 || tas.every(is_not_admin)) { %>
+    <div class="card"><div class="card-content">
+    <h3 class="card-title">Setup Checklist</h3>
+    <ul class="browser-default" style="margin: 0px;">
+        <% if (current_semester == "") { %>
+        <li>Set the current semester</li>
+        <% } %>
+        <% if (current_semester != "" && topics.length == 0) { %>
+        <li>Add topics</li>
+        <% } %>
+        <% if (current_semester != "" && (tas.length == 0 || tas.every(is_not_admin))) { %>
+        <li>Add admins and TAs (don't forget to add yourself!)</li>
+        <% } %>
+    </ul>
+    </div></div>
+    <% } %>
+
+    <div class="card"><div class="card-content">
+        <h3 class="card-title">Admin</h3>
+        <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
+            <div class="input-field inline col m2 s4">
+            <input type="text" name="current_semester" id="current_semester" value="<%= current_semester %>" placeholder="e.g. F17" required><label for="current_semester">Current Semester</label>
+            </div>
+            <div class="input-field inline col m2 s6 center-btn">
+            <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+            </div>
+        </form>
+        <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
+            <div class="input-field inline col m10 s12">
+            <input type="url" name="slack_webhook" id="slack_webhook" value="<%= slack_webhook %>"><label for="slack_webhook">Slack Webhook URL</label>
+            </div>
+            <div class="input-field inline col m2 s12 center-btn">
+            <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+            </div>
+        </form>
+        <p>If you have a Slack team set up for your course, you can set up a Slack Incoming Webhook <a href="https://my.slack.com/services/new/incoming-webhook/" target="_blank">here</a>. Otherwise, you may leave this field empty.</p>
+    </div></div>
+
+    <% if (current_semester != "") { %>
+    <div class="card"><div class="card-content">
+        <h3 class="card-title">Topics</h3>
+        <div class="fake-table striped"><div class="fake-thead">
+        <div class="fake-tr">
+            <div class="fake-th">Topic Name</div>
+            <div class="fake-th">Out Date/Time</div>
+            <div class="fake-th">Due Date/Time</div>
+            <div class="fake-th">Actions</div>
+        </div>
+        </div><div class="fake-tbody">
+        <% topics.forEach(function(topic) { %>
+        <form class="fake-tr" method="POST">
+        <div class="fake-td"><input type="text" name="topic_name" value="<%= topic.name %>" required></div>
+        <div class="fake-td"><input type="text" name="out_date" class="datepicker" value="<%= topic.out_date %>" required></div>
+        <div class="fake-td"><input type="text" name="due_date" class="datepicker" value="<%= topic.due_date %>" required></div>
+        <div class="fake-td" style="width: 1%; white-space:nowrap;">
+            <input type="hidden" name="id" value="<%= topic.id %>">
+            <button class="btn-flat waves-effect cyan white-text" name="action" value="UPDATETOPIC">Update</button>
+            <button class="btn-flat waves-effect grey lighten-2 grey-text text-darken-3 remove-button" name="action" value="DELETETOPIC">Delete</button>
+        </div>
+        </form>
+        <% }); %>
+        </div>
+        <p><strong>Add a new topic:</strong></p>
+        <div class="fake-tbody">
+        <form class="fake-tr" method="POST" style="background: none;">
+        <div class="fake-td"><label for="topic_name">Name</label><input type="text" name="topic_name" required></div>
+        <div class="fake-td"><label for="out_date">Out Date/Time</label><input type="text" name="out_date" class="datepicker" required></div>
+        <div class="fake-td"><label for="due_date">Due Date/Time</label><input type="text" name="due_date" class="datepicker" required></div>
+        <div class="fake-td" style="width: 1%; white-space:nowrap;">
+            <button class="btn-flat waves-effect cyan white-text" name="action" value="ADDTOPIC">Add</button>
+        </div>
+        </form>
+        </div></div>
+    </div></div>
+    <% } %>
+
+    <% if (current_semester != "") { %>
+    <div class="card"><div class="card-content">
+        <h3 class="card-title">TAs</h3>
+        <div class="fake-table striped"><div class="fake-thead">
+        <div class="fake-tr">
+            <div class="fake-th">Name</div>
+            <div class="fake-th">Email</div>
+            <div class="fake-th">Admin</div>
+        </div>
+        </div><div class="fake-tbody">
+        <% tas.forEach(function(ta) { %>
+        <form class="fake-tr" method="POST">
+        <div class="fake-td"><input type="text" name="name" value="<%= ta.full_name %>"></div>
+        <div class="fake-td">
+            <input type="email" name="email" value="<%= ta.email %>" required <% if (ta.is_self) { %> disabled <% } %>>
+        </div>
+        <div class="fake-td center">
+            <label><input type="checkbox" name="admin" value="true" <% if (ta.admin) { %>checked<% } %> <% if (ta.is_self || ta.email == owner_email) { %>disabled<% } %> id="admin_<%= ta.id %>" /><span/></label>
+        </div>
+        <div class="fake-td" style="width: 1%; white-space:nowrap;">
+            <input type="hidden" name="id" value="<%= ta.id %>">
+            <button class="btn-flat waves-effect cyan white-text" name="action" value="UPDATETA">Update</button>
+            <% if (!ta.is_self) { %>
+            <button class="btn-flat waves-effect grey lighten-2 grey-text text-darken-3 remove-button" name="action" value="DELETETA">Delete</button>
+            <% } %>
+        </div>
+        </form>
+        <% }); %>
+        </div>
+        <p><strong>Add a new TA:</strong></p>
+        <div class="fake-tbody">
+        <form class="fake-tr" method="POST" style="background: none;">
+        <div class="fake-td"><label for="name">Name</label><input type="text" name="name" required></div>
+        <div class="fake-td"><label for="email">Email</label><input type="email" name="email" required></div>
+        <div class="fake-td">
+            <input type="checkbox" name="admin" value="true" id="admin_new" />
+            <label for="admin_new"></label>
+        </div>
+        <div class="fake-td" style="width: 1%; white-space:nowrap;">
+            <button class="btn-flat waves-effect cyan white-text" name="action" value="ADDTA">Add</button>
+        </div>
+        </form>
+        </div></div>
+    </div></div>
+    <% } %>
+<% } %>
+
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+  <%_ if (toast) { _%>
+    M.toast({
+        html: "<%= toast %>",
+        duration: 4000
+    });
+  <%_ } _%>
+  $(document).on("click", ".remove-button", function(event) {
+        if (!$(this).hasClass("confirming")) {
+            $(".confirming").each(function() {
+                $(this).removeClass("confirming red white-text")
+                    .addClass("grey lighten-2 grey-text text-darken-3")
+                    .text("Remove");
+            });
+            $(this).addClass("confirming red white-text")
+                .removeClass("grey lighten-2 grey-text text-darken-3")
+                .text("Are you sure?");
+            event.preventDefault();
+        }
+    });
+    $(document).click(function(event) {
+        if (!$(event.target).hasClass("remove-button")) {
+            $(".confirming").each(function() {
+                $(this).removeClass("confirming red white-text")
+                    .addClass("grey lighten-2 grey-text text-darken-3")
+                    .text("Delete");
+            });
+        }
+    });
+    $('.datepicker').flatpickr({
+        enableTime: true,
+        altInput: true,
+        altFormat: "F j, Y h:i K",
+        dateFormat: "D M j Y H:i:S"
+    });
+});
+</script>
+<%- include("footer.ejs") %>
+</body>
+</html>

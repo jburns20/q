@@ -13,7 +13,7 @@ exports.get = function(req, res) {
         res.redirect("/login");
         return;
     }
-    if (!p.is_admin(req)) {
+    if (!p.is_ta(req) && !p.is_owner(req)) {
         res.sendStatus(403);
         return;
     }
@@ -50,15 +50,18 @@ exports.get = function(req, res) {
         results.tas.forEach(function(ta) {
             ta.is_self = (req.session.TA && ta.id == req.session.TA.id);
         });
-        return res.render("admin", {
+        return res.render("settings", {
             title: config.title,
             session: req.session,
             toast: toast,
+            video_chat_url: (req.session.TA ? req.session.TA.video_chat_url : undefined),
             current_semester: current_semester,
             slack_webhook: results.webhook_url,
             topics: results.topics,
             tas: results.tas,
-            owner_email: config.owner_email
+            owner_email: config.owner_email,
+            is_admin: p.is_admin(req),
+            is_ta: p.is_ta(req)
         });
     });
 };
@@ -70,7 +73,7 @@ function respond(req, res, message, data) {
         if (message) {
             res.cookie("toast", message);
         }
-        res.redirect("/admin");
+        res.redirect("/settings");
     }
 }
 
@@ -258,30 +261,51 @@ function post_update_ta(req, res) {
     });
 }
 
+function post_update_url(req, res) {
+    req.session.TA.update({
+        video_chat_url: req.body.video_chat_url
+    }).then(function(result) {
+        respond(req, res, "Video Chat URL updated");
+    });
+}
+
 exports.post = function(req, res) {
     if (!p.is_logged_in(req)) {
         res.redirect("/login");
         return;
     }
-    if (!p.is_admin(req)) {
-        res.sendStatus(403);
-        return;
-    }
 
     var action = req.body.action;
-    if (action == "ADDTOPIC") {
-        post_add_topic(req, res);
-    } else if (action == "DELETETOPIC") {
-        post_delete_topic(req, res);
-    } else if (action == "UPDATETOPIC") {
-        post_update_topic(req, res);
-    } else if (action == "ADDTA") {
-        post_add_ta(req, res);
-    } else if (action == "UPDATETA") {
-        post_update_ta(req, res);
-    } else if (action == "DELETETA") {
-        post_delete_ta(req, res);
-    } else {
-        respond(req, res, "Invalid action: " + action);
+    var handled = false;
+    if (p.is_ta(req)) {
+        if (action == "UPDATEURL") {
+            post_update_url(req, res);
+            handled = true;
+        }
+    }
+    if (p.is_admin(req)) {
+        if (action == "ADDTOPIC") {
+            post_add_topic(req, res);
+            handled = true;
+        } else if (action == "DELETETOPIC") {
+            post_delete_topic(req, res);
+            handled = true;
+        } else if (action == "UPDATETOPIC") {
+            post_update_topic(req, res);
+            handled = true;
+        } else if (action == "ADDTA") {
+            post_add_ta(req, res);
+            handled = true;
+        } else if (action == "UPDATETA") {
+            post_update_ta(req, res);
+            handled = true;
+        } else if (action == "DELETETA") {
+            post_delete_ta(req, res);
+            handled = true;
+        }
+    }
+    if (!handled) {
+        res.sendStatus(403);
+        return;
     }
 };

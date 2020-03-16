@@ -14,7 +14,10 @@
 
 $(document).ready(function() {
   <%_ if (toast) { _%>
-    Materialize.toast("<%= toast %>", 4000);
+    M.toast({
+        html: "<%= toast %>",
+        duration: 4000
+    });
   <%_ } _%>
 });
 
