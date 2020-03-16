@@ -265,6 +265,7 @@ function post_update_url(req, res) {
     req.session.TA.update({
         video_chat_url: req.body.video_chat_url
     }).then(function(result) {
+        home.clear_entries_cache();
         respond(req, res, "Video Chat URL updated");
     });
 }

@@ -133,7 +133,12 @@ $(document).ready(function() {
     }); %>));
     <%_ if (entry.status == 1) { %>
       $("#modal_ta_name").text("<%= entry.TA.full_name %>");
-      $("#modal_ta_video_chat_url").attr("href", "<%= entry.TA.video_chat_url %>");
+      <% if (entry.TA.video_chat_url && entry.TA.video_chat_url.length > 0) { %>
+        $("#modal_ta_video_chat_url").show();
+        $("#modal_ta_video_chat_url").attr("href", "<%= entry.TA.video_chat_url %>");
+      <% } else { %>
+        $("#modal_ta_video_chat_url").hide();
+      <% } %>
       M.Modal.getInstance($("#help_modal")).open();
     <%_ } %>
   <%_ } else if (session && (session.TA || session.owner)) { _%>

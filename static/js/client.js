@@ -289,7 +289,12 @@ socket.on("help", function(message) {
                     console.log("There was an error showing a browser notification.");
                 }
                 $("#modal_ta_name").text(message.data.ta_full_name);
-                $("#modal_ta_video_chat_url").attr("href", message.data.ta_video_chat_url);
+                if (message.data.ta_video_chat_url && message.data.ta_video_chat_url.length > 0) {
+                    $("#modal_ta_video_chat_url").show();
+                    $("#modal_ta_video_chat_url").attr("href", message.data.ta_video_chat_url);
+                } else {
+                    $("#modal_ta_video_chat_url").hide();
+                }
                 M.Modal.getInstance($("#help_modal")).open();
             }
         }
