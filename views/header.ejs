@@ -41,9 +41,7 @@
       </form></li>
       <% } %>
       <% if (session.TA || session.owner) { %>
-      <% if (session.TA && session.TA.admin || session.owner) { %>
-      <li><a href="/admin">Admin</a></li>
-      <% } %>
+      <li><a href="/settings">Settings</a></li>
       <li><a href="/metrics">Metrics</a></li>
       <% } %>
       <li><a href="/logout">Log Out</a></li>
