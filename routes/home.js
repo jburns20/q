@@ -33,7 +33,7 @@ exports.get = function(req, res) {
     options.current_semester().then(function(sem) {
         if (sem == "") {
             if (req.session && req.session.owner) {
-                res.redirect("/admin");
+                res.redirect("/settings");
             } else {
                 res.render("splash", {
                     title: config.title,
