@@ -246,7 +246,8 @@ function post_help(req, res) {
             throw new Error("You are already helping a student");
         }
         return model.Entry.findByPk(id, {
-            transaction: t
+            transaction: t,
+            lock: Sequelize.Transaction.LOCK.UPDATE,
         }).then(function(entry) {
             if (!entry) {
                 throw new Error("The student you were trying to help is not on the queue");
