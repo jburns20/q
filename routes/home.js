@@ -200,7 +200,8 @@ function post_add(req, res) {
             status: 0,
             session_id: (p.is_ta(req) || p.is_admin(req)) ? null : req.session.id,
             topic_id: topic_id,
-            question: question
+            question: question,
+            cooldown_override: (cooldown_override ? 1 : 0),
         });
     }).then(function(instance) {
         entries_cache = null;
