@@ -29,6 +29,22 @@ var xHtml = "<button class='waves-effect waves btn-flat grey lighten-2 black-tex
 
 var mq;
 
+function submitAddForm(cooldown_override) {
+    var data = $("#add_form form").serialize() + "&action=ADD";
+    if (cooldown_override) {
+        data = data + "&cooldown_override=1";
+    }
+    $.post("/?json=1", data, function(result) {
+        if (result.data && result.data.cooldown_warning) {
+            $("#modal_cooldown_time").text(result.data.cooldown_time);
+            M.Modal.getInstance($("#cooldown_modal")).open();
+        } else {
+            document.cookie = "toast=" + result.message;
+            window.location.reload();
+        }
+    }, 'json');
+}
+
 $(document).ready(function() {
     $('select').formSelect();
     $('.modal').modal();
@@ -57,6 +73,16 @@ $(document).ready(function() {
     });
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
+
+    $("#add_form form").submit(function(event) {
+        event.preventDefault();
+        submitAddForm(false);
+    });
+
+    $("#cooldown_override_submit").click(function(event) {
+        event.preventDefault();
+        submitAddForm(true);
+    })
 });
 
 
@@ -79,7 +105,7 @@ function buildTAEntry(entry) {
     elt.data("entryId", entry.id);
     elt.find(".id-input").val(entry.id);
     elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
-    elt.find(".entry-question").html(`[${entry.topic_name}] ${entry.question}`);
+    elt.find(".entry-question").html(`${entry.cooldown_override ? '\u21BB ' : ''}[${entry.topic_name}] ${entry.question}`);
 
     if (entry.status == 1 && ta_id == entry.ta_id) {
         elt.find(".cancel-button").removeClass("hide");

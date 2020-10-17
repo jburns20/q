@@ -139,6 +139,10 @@ input {
     flex-shrink: 1;
 }
 
+.modal {
+    width: 45%;
+}
+
 @media only screen and (max-width: 800px) {
     /* Allow question text to fall underneath name on small viewports. */
     .entry-text {
@@ -158,6 +162,11 @@ input {
     .entry-buttons button {
         margin: 5px;
     }
+
+    .modal {
+        width: 80%;
+    }
+
 }
 
 /* Grow when possible to push the buttons to the right. */

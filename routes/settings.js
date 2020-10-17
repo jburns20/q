@@ -29,6 +29,7 @@ exports.get = function(req, res) {
         current_semester = semester;
         return Sequelize.Promise.props({
             webhook_url: options.slack_webhook(),
+            cooldown_time: options.cooldown_time(),
             topics: function() {
                 return model.Topic.findAll({
                     where: {
@@ -57,6 +58,7 @@ exports.get = function(req, res) {
             video_chat_url: (req.session.TA ? req.session.TA.video_chat_url : undefined),
             current_semester: current_semester,
             slack_webhook: results.webhook_url,
+            cooldown_time: results.cooldown_time,
             topics: results.topics,
             tas: results.tas,
             owner_email: config.owner_email,

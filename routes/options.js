@@ -10,7 +10,7 @@ var config = require("../config.json");
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
 var options_cache = {};
-var protected_keys = ["current_semester", "slack_webhook"];
+var protected_keys = ["current_semester", "slack_webhook", "cooldown_time"];
 
 exports.get_string = function(key, default_value) {
     if (default_value === undefined) {
@@ -50,6 +50,18 @@ exports.get_bool = function(key, default_value) {
     });
 };
 
+exports.get_number = function(key, default_value) {
+    if (default_value == undefined) {
+        default_value = 0;
+    }
+    var string_default = default_value ? default_value.toString() : "0";
+    return model.sql.sync().then(function() {
+        return exports.get_string(key, string_default);
+    }).then(function(value) {
+        return parseFloat(value);
+    });
+}
+
 exports.frozen = function() { return exports.get_bool("frozen", false); };
 exports.message = function() { return exports.get_string("message", ""); };
 exports.current_semester = function() {
@@ -58,6 +70,9 @@ exports.current_semester = function() {
 exports.slack_webhook = function() {
     return exports.get_string("slack_webhook", "");
 };
+exports.cooldown_time = function() {
+    return exports.get_number("cooldown_time", 0);
+}
 
 exports.get = function(req, res) {
     if (req.query.key == "frozen") {
@@ -107,6 +122,8 @@ function validate(key, value) {
         return value;
     } else if (key == "slack_webhook") {
         return value;
+    } else if (key == "cooldown_time" && parseFloat(value) >= 0) {
+        return parseFloat(value).toString();
     }
 }
 
@@ -174,6 +191,14 @@ function post_prop_update(req, key, prev_value, value) {
     } else if (key == "slack_webhook") {
         waittimes.update_slack();
         return "Webhook URL updated";
+    } else if (key == "cooldown_time") {
+        if (parseFloat(prev_value) > 0 && parseFloat(value) > 0) {
+            return "Cooldown warning time limit updated";
+        } else if (parseFloat(prev_value) > 0) {
+            return "Cooldown warning removed";
+        } else if (parseFloat(value) > 0) {
+            return "Cooldown warning set";
+        }
     }
 }
 
@@ -209,7 +234,9 @@ exports.post = function(req, res) {
             });
         }).then(function(row) {
             options_cache[key] = value;
-            realtime.option(key, value);
+            if (!is_protected) {
+                realtime.option(key, value);
+            }
             return post_prop_update(req, key, prev_value, value);
         });
         promises.push(p);

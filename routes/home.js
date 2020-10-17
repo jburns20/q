@@ -110,6 +110,7 @@ function post_add(req, res) {
     var user_id = req.body.user_id.toLowerCase();
     var topic_id = req.body.topic_id;
     var question = req.body.question;
+    var cooldown_override = req.body.cooldown_override;
     var topic = null;
     new Promise(function(resolve, reject) {
         // A valid user ID is between 3 and 8 alphanumeric characters, and
@@ -130,15 +131,25 @@ function post_add(req, res) {
         resolve();
     }).then(function() {
         // Make sure the user isn't already on the queue
-        return model.Entry.findOne({
-            where: {status: {[Sequelize.Op.lt]: 2}, user_id: user_id},
+        return Sequelize.Promise.props({
+            cooldown_time: options.cooldown_time(),
+            entry: model.Entry.findOne({
+                where: {user_id: user_id},
+                order: [['entry_time', 'DESC']],
+            }),
         });
     }).then(function(result) {
-        if (result) {
+        if (result.entry && result.entry.status < 2) {
             throw new Error("You are already on the queue");
-        } else {
-            return model.Topic.findByPk(topic_id);
+        } else if (result.entry && new Date() - result.entry.exit_time < 1000 * 60 * result.cooldown_time && !cooldown_override) {
+            var err = new Error("You've just been helped");
+            err.data = {
+                cooldown_warning: true,
+                cooldown_time: result.cooldown_time + " minute" + (result.cooldown_time == 1 ? "" : "s"),
+            };
+            throw err;
         }
+        return model.Topic.findByPk(topic_id);
     }).then(function(result) {
         if (result == null && topic_id == 0) {
             topic_id = null;
@@ -199,7 +210,7 @@ function post_add(req, res) {
     }).then(function(waittimes) {
         respond(req, res, "Entered the queue");
     }).catch(function(error) {
-        respond(req, res, "Error: " + error.message);
+        respond(req, res, "Error: " + error.message, error.data);
     });
 }
 
