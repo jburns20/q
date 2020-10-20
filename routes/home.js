@@ -141,7 +141,7 @@ function post_add(req, res) {
     }).then(function(result) {
         if (result.entry && result.entry.status < 2) {
             throw new Error("You are already on the queue");
-        } else if (result.entry && new Date() - result.entry.exit_time < 1000 * 60 * result.cooldown_time && !cooldown_override) {
+        } else if (!p.is_ta(req) && result.entry && new Date() - result.entry.exit_time < 1000 * 60 * result.cooldown_time && !cooldown_override) {
             var err = new Error("You've just been helped");
             err.data = {
                 cooldown_warning: true,

@@ -28,6 +28,7 @@ const entryHtml = `
 var xHtml = "<button class='waves-effect waves btn-flat grey lighten-2 black-text x-button' name='action' value='CANCEL'>X</button>";
 
 var mq;
+var disable_updates = false;
 
 function submitAddForm(cooldown_override) {
     var data = $("#add_form form").serialize() + "&action=ADD";
@@ -36,6 +37,7 @@ function submitAddForm(cooldown_override) {
     }
     $.post("/?json=1", data, function(result) {
         if (result.data && result.data.cooldown_warning) {
+            disable_updates = false;
             $("#modal_cooldown_time").text(result.data.cooldown_time);
             M.Modal.getInstance($("#cooldown_modal")).open();
         } else {
@@ -81,6 +83,7 @@ $(document).ready(function() {
 
     $("#cooldown_override_submit").click(function(event) {
         event.preventDefault();
+        disable_updates = true;
         submitAddForm(true);
     })
 });
@@ -247,11 +250,14 @@ socket.on("connect", function () {
         Notification.requestPermission();
     }
 });
+
 $(document).on("submit", "form", function(event) {
-    socket.disconnect();
+    disable_updates = true;
 });
 
 socket.on("add", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
     // notification on add for ta
     try {
         if ( ta_id && ("Notification" in window) && (Notification.permission == "granted") ) {
@@ -264,7 +270,6 @@ socket.on("add", function(message) {
     } catch (error) {
         console.log("There was an error showing a browser notification.");
     }
-    checkAndUpdateSeq(message.seq);
     var elt = null;
     if (ta_id || is_owner) {
         elt = buildTAEntry(message.data);
@@ -277,6 +282,7 @@ socket.on("add", function(message) {
 });
 
 socket.on("remove", function(message) {
+    if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
@@ -291,6 +297,7 @@ socket.on("remove", function(message) {
 });
 
 socket.on("help", function(message) {
+    if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     if (ta_id == message.data.ta_id) {
         //you just started helping someone, this changes everything so reload
@@ -328,6 +335,7 @@ socket.on("help", function(message) {
 });
 
 socket.on("cancel", function(message) {
+    if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     if (ta_id == message.data.ta_id) {
         //you just cancelled helping someone, this changes everything so reload
@@ -349,6 +357,7 @@ socket.on("cancel", function(message) {
 });
 
 socket.on("done", function(message) {
+    if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     if (ta_id == message.data.ta_id) {
         //you just finished helping someone, this changes everything so reload
@@ -368,6 +377,7 @@ socket.on("done", function(message) {
 });
 
 socket.on("option", function(message) {
+    if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     if (message.key == "frozen") {
         if (message.value == "1") {
@@ -377,8 +387,10 @@ socket.on("option", function(message) {
                 $(".freeze-btn").text("Unfreeze");
             } else {
                 $("#add_form").hide();
+                $("#cooldown_override_text").hide();
             }
         } else {
+            $("#cooldown_override_text").show();
             $("#frozen_message").hide();
             if ($("#queue").find(".me").length == 0) {
                 $("#add_form").show();
@@ -398,6 +410,7 @@ socket.on("option", function(message) {
 });
 
 socket.on("waittimes", function(message) {
+    if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     console.log("Got wait times: " + message.times);
     waittimes = message.times;
