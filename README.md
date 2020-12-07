@@ -6,7 +6,8 @@ In order to install the Queue application, you'll need to create a MySQL databas
 
 1. `$ mysql -u root -p` (and enter the MySQL root password which you created during installation)
 2. `mysql> CREATE DATABASE queue;`
-3. `mysql> GRANT ALL PRIVILEGES ON queue.* To 'your_username'@'localhost' IDENTIFIED BY 'your_password';` (make sure to choose a strong password)
+3. `mysql> CREATE USER 'your_username'@'localhost' IDENTIFIED BY 'your_password';` (make sure to choose a strong password)
+4. `mysql> GRANT ALL PRIVILEGES ON queue.* TO 'your_username'@'localhost';`
 
 To get Google OAuth credentials, you can follow the instructions at [https://developers.google.com/adwords/api/docs/guides/authentication#webapp](https://developers.google.com/adwords/api/docs/guides/authentication#webapp). Leave the "Authorized JavaScript origins" field blank, and use `https://<YOUR_DOMAIN>/oauth2/callback` for the Authorized Redirect URI. (if you're not using HTTPS, replace `https` with `http`).
 
