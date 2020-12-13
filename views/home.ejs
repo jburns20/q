@@ -141,7 +141,7 @@ $(document).ready(function() {
         topic_name: entry.topic ? entry.topic.name : "other",
         ta_full_name: entry.TA ? entry.TA.full_name : "",
         question: entry.question
-    }); %>));
+    }).replace(/<\//g, "<\\/"); %>));
     <%_ if (entry.status == 1) { %>
       $("#modal_ta_name").text("<%= entry.TA.full_name %>");
       <% if (entry.TA.video_chat_url && entry.TA.video_chat_url.length > 0) { %>
@@ -163,7 +163,7 @@ $(document).ready(function() {
         ta_full_name: entry.TA ? entry.TA.full_name : "",
         question: entry.question,
         cooldown_override: entry.cooldown_override,
-    }); %>));
+	}).replace(/<\//g, "<\\/"); %>));
   <%_ } else { _%>
     $("#queue").append(buildStudentEntry(<%- JSON.stringify({
         id: entry.id,
