@@ -145,3 +145,16 @@ exports.waittimes = function(times) {
         times: times
     });
 }
+
+exports.notifytime = function(ta_id, min_elapsed) {
+    exports.seq = exports.seq + 1;
+    if (!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.emit("notifytime", {
+        seq: exports.seq,
+        id: ta_id,
+        min_elapsed: min_elapsed
+    });
+}
