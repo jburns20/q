@@ -163,7 +163,8 @@ $(document).ready(function() {
         ta_full_name: entry.TA ? entry.TA.full_name : "",
         question: entry.question,
         cooldown_override: entry.cooldown_override,
-	}).replace(/<\//g, "<\\/"); %>));
+        blocked: entry.blocked
+  }).replace(/<\//g, "<\\/"); %>));
   <%_ } else { _%>
     $("#queue").append(buildStudentEntry(<%- JSON.stringify({
         id: entry.id,

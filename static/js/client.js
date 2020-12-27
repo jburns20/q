@@ -3,6 +3,7 @@ const cancelHtml = "<button class='entry-item cancel-button hide waves-effect wa
 const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'>Fix Question</button>";
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
+const updateHtml = "<button class='entry-item update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='UPDATE'>Update Question</button>";
 
 const entryHtml = `
     <li class='collection-item'>
@@ -17,6 +18,7 @@ const entryHtml = `
                 <div class='entry-item entry-spacer'></div>
                 <div class='entry-item entry-container entry-buttons'>
                     ${fixqHtml}
+                    ${updateHtml}
                     ${removeHtml}
                     ${helpHtml}
                     ${cancelHtml}
@@ -121,8 +123,10 @@ function buildTAEntry(entry) {
     } else if (!ta_helping_id) {
         if (ta_id) {
             elt.find(".remove-button").removeClass("hide");
-            elt.find(".help-button").removeClass("hide");
-            elt.find(".fix-question-button").removeClass("hide");
+            if (!entry.blocked) {
+                elt.find(".help-button").removeClass("hide");
+                elt.find(".fix-question-button").removeClass("hide");
+            }
         } else {
             elt.find(".remove-button").removeClass("hide");
         }
@@ -284,6 +288,56 @@ socket.on("add", function(message) {
     updateStatus();
 });
 
+//TODO: UPDATE MODAL STUFFS
+socket.on("fixq", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
+
+    $("#queue li").each(function(index, item) {
+        if ($(item).data("entryId") == message.id) {
+            $(item).find("button").addClass("hide");
+            if (ta_id && !ta_helping_id) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".helping-text").text("Student is updating question");
+            }
+            
+            if ($(item).hasClass("me")) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".helping-text").text("Please update your question");
+                $(item).find(".update-question-button").removeClass("hide");
+
+                try {
+                    if (("Notification" in window) && (Notification.permission == "granted")) {
+                        var notification = new Notification("Your question is not detailed enough!", {
+                            "body": "Please update your question."
+                        });
+                    }
+                } catch (error) {
+                    console.log("There was an error showing a browser notification.");
+                }
+            }
+        }
+    });
+});
+
+socket.on("update", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
+    
+    $("#queue li").each(function(index, item) {
+        if ($(item).data("entryId") == message.id) {
+            $(item).find("button").addClass("hide");
+            if ($(item).hasClass("me")) {
+                $(item).find(".remove-button").removeClass("hide");
+            } else if (ta_id && !ta_helping_id) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".help-button").removeClass("hide");
+                $(item).find(".fix-question-button").removeClass("hide");
+            } 
+        }
+    });
+});
+
 socket.on("remove", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
@@ -354,6 +408,7 @@ socket.on("cancel", function(message) {
             } else if (ta_id && !ta_helping_id) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".help-button").removeClass("hide");
+                $(item).find(".fix-question-button").removeClass("hide");
             }
         }
     });

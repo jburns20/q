@@ -202,6 +202,7 @@ function post_add(req, res) {
             topic_id: topic_id,
             question: question,
             cooldown_override: (cooldown_override ? 1 : 0),
+            blocked: false,
         });
     }).then(function(instance) {
         entries_cache = null;
@@ -263,6 +264,9 @@ function post_help(req, res) {
         }).then(function(entry) {
             if (!entry) {
                 throw new Error("The student you were trying to help is not on the queue");
+            }
+            if (entry.blocked) {
+                throw new Error("Student needs to update question");
             }
             if (entry.status != 0) {
                 throw new Error("That student is already being helped");
@@ -381,19 +385,78 @@ function post_done(req, res) {
     });
 }
 
+//TODO: Add/edit functions to support updateQ popup
+
+function post_fixq(req, res) {
+    var id = req.body.entry_id;
+    model.sql.transaction(function(t) {
+        if (!p.is_ta(req)) {
+            throw new Error("You don't have permission to block that student");
+        }
+        return model.Entry.findByPk(id, {
+            transaction: t,
+            lock: Sequelize.Transaction.LOCK.UPDATE,
+        }).then(function(entry) {
+            if (!entry) {
+                throw new Error("The student is not on the queue");
+            }
+            if (entry.blocked) {
+                throw new Error("Student has already been asked to update question");
+            }
+            return entry.update({
+                blocked: true,
+            }, {transaction: t});
+        })
+    }).then(function(result) {
+        entries_cache = null;
+        realtime.fixq(id);
+        return waittimes.update();
+    }).then(function(waittimes) {
+        respond(req, res, null);
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error.message);
+    });
+}
+
+function post_update(req, res) {
+    var id = req.body.entry_id;
+    model.sql.transaction(function(t) {
+        return model.Entry.findByPk(id, {
+            transaction: t,
+            lock: Sequelize.Transaction.LOCK.UPDATE,
+        }).then(function(entry) {
+            if (!entry) {
+                throw new Error("The student is not on the queue");
+            }
+            if (!entry.blocked) {
+                throw new Error("Question has already been updated");
+            }
+            return entry.update({
+                blocked: false,
+            }, {transaction: t});
+        })
+    }).then(function(result) {
+        entries_cache = null;
+        realtime.update(id);
+        return waittimes.update();
+    }).then(function(waittimes) {
+        respond(req, res, null);
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error.message);
+    });
+}
+
 exports.post = function(req, res) {
     var action = req.body.action;
-    if (action == "ADD") {
-        post_add(req, res);
-    } else if (action == "REM") {
-        post_rem(req, res);
-    } else if (action == "HELP") {
-        post_help(req, res);
-    } else if (action == "CANCEL") {
-        post_cancel(req, res);
-    } else if (action == "DONE") {
-        post_done(req, res);
-    } else {
-        respond(req, res, "Invalid action: " + action);
+    switch(action) {
+        case "ADD": post_add(req, res); break;
+        case "REM": post_rem(req, res); break;
+        case "HELP": post_help(req, res); break;
+        case "CANCEL": post_cancel(req, res); break;
+        case "DONE": post_done(req, res); break;
+        case "FIXQ": post_fixq(req, res); break;
+        case "UPDATE": post_update(req, res); break;
+        default:
+            respond(req, res, "Invalid action: " + action);
     }
 };
