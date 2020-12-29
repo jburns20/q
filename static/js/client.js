@@ -126,6 +126,8 @@ function buildTAEntry(entry) {
             if (!entry.blocked) {
                 elt.find(".help-button").removeClass("hide");
                 elt.find(".fix-question-button").removeClass("hide");
+            } else {
+                elt.find(".helping-text").text("Student is updating question");
             }
         } else {
             elt.find(".remove-button").removeClass("hide");
@@ -296,11 +298,7 @@ socket.on("fixq", function(message) {
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
             $(item).find("button").addClass("hide");
-            if (ta_id && !ta_helping_id) {
-                $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".helping-text").text("Student is updating question");
-            }
-            
+
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".helping-text").text("Please update your question");
