@@ -416,3 +416,22 @@ socket.on("waittimes", function(message) {
     waittimes = message.times;
     updateStatus();
 });
+
+socket.on("notifytime", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
+
+    if (ta_id == message.id) {
+        console.log("Got elapsed time: " + message.min_elapsed);
+        try {
+            if (ta_id && ("Notification" in window) && (Notification.permission == "granted")) {
+                var notification = new Notification("Time Alert!", {
+                    "body": "You've been helping for " + message.min_elapsed + " minutes!"
+                });
+            }
+        } catch (error) {
+            console.log("There was an error showing a browser notification.");
+        }
+    }
+});
+
