@@ -24,14 +24,7 @@
   </form>
   <%_ } _%>
 
-  <div id="queue_container">
-  <div id="status">
-    <div class="inner">
-      <div id="status_content"></div>
-    </div>
-  </div>
-  <ul class="collection" id="queue"></ul>
-  </div>
+  <div id="queue_container"></div>
 
   <div id="add_form">
   <h6 class="center" style="font-size: 120%;">
@@ -130,10 +123,12 @@ $(document).ready(function() {
   <%_ } _%>
 
 <%_ var sawSelf = false; _%>
+const entries = [
 <%_ entries.forEach(function(entry) { _%>
   <%_ if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id)) { _%>
     <%_ sawSelf = true; _%>
-    $("#queue").append(buildMyEntry(<%- JSON.stringify({
+    <%- JSON.stringify({
+        kind: "myEntry",
         id: entry.id,
         status: entry.status,
         name: entry.name,
@@ -141,19 +136,10 @@ $(document).ready(function() {
         topic_name: entry.topic ? entry.topic.name : "other",
         ta_full_name: entry.TA ? entry.TA.full_name : "",
         question: entry.question
-    }).replace(/<\//g, "<\\/"); %>));
-    <%_ if (entry.status == 1) { %>
-      $("#modal_ta_name").text("<%= entry.TA.full_name %>");
-      <% if (entry.TA.video_chat_url && entry.TA.video_chat_url.length > 0) { %>
-        $("#modal_ta_video_chat_url").show();
-        $("#modal_ta_video_chat_url").attr("href", "<%= entry.TA.video_chat_url %>");
-      <% } else { %>
-        $("#modal_ta_video_chat_url").hide();
-      <% } %>
-      M.Modal.getInstance($("#help_modal")).open();
-    <%_ } %>
+    }).replace(/<\//g, "<\\/"); %>,
   <%_ } else if (session && (session.TA || session.owner)) { _%>
-    $("#queue").append(buildTAEntry(<%- JSON.stringify({
+    <%- JSON.stringify({
+        kind: "taEntry",
         id: entry.id,
         status: entry.status,
         name: entry.name,
@@ -163,13 +149,31 @@ $(document).ready(function() {
         ta_full_name: entry.TA ? entry.TA.full_name : "",
         question: entry.question,
         cooldown_override: entry.cooldown_override,
-	}).replace(/<\//g, "<\\/"); %>));
+	}).replace(/<\//g, "<\\/"); %>,
   <%_ } else { _%>
-    $("#queue").append(buildStudentEntry(<%- JSON.stringify({
+    <%- JSON.stringify({
+        kind: "studentEntry",
         id: entry.id,
         status: entry.status,
         ta_full_name: entry.TA ? entry.TA.full_name : ""
-    }); %>));
+    }); %>,
+  <%_ } _%>
+<%_ }); _%>
+];
+ReactDOM.render(React.createElement(QueueContainer, {
+  entries: entries
+}), document.getElementById("queue_container"));
+
+<%_ entries.forEach(function(entry) { _%>
+  <%_ if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id) && entry.status == 1) { _%>
+    $("#modal_ta_name").text("<%= entry.TA.full_name %>");
+    <%_ if (entry.TA.video_chat_url && entry.TA.video_chat_url.length > 0) { _%>
+      $("#modal_ta_video_chat_url").show();
+      $("#modal_ta_video_chat_url").attr("href", "<%= entry.TA.video_chat_url _%>");
+    <%_ } else { _%>
+      $("#modal_ta_video_chat_url").hide();
+    <%_ } _%>
+    M.Modal.getInstance($("#help_modal")).open();
   <%_ } _%>
 <%_ }); _%>
 

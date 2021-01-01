@@ -105,7 +105,7 @@ function cancelEditMessage() {
 //REQUIRED FIELDS: id, status, name, user_id, ta_id, topic_name, ta_full_name, question
 function buildTAEntry(entry) {
     var elt = $(entryHtml);
-    elt.data("entryId", entry.id);
+    elt.attr("data-id", entry.id);
     elt.find(".id-input").val(entry.id);
     elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
     elt.find(".entry-question").html(`${entry.cooldown_override ? '\u21BB ' : ''}[${entry.topic_name}] ${entry.question.replace(/</g, "&lt;")}`);
@@ -131,7 +131,7 @@ function buildTAEntry(entry) {
 function buildMyEntry(entry) {
     var elt = $(entryHtml);
     elt.addClass("me");
-    elt.data("entryId", entry.id);
+    elt.attr("data-id", entry.id);
     elt.find(".id-input").val(entry.id);
     elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
     elt.find(".entry-question").html(`[${entry.topic_name}] ${entry.question.replace(/</g, "&lt;")}`);
@@ -147,12 +147,41 @@ function buildMyEntry(entry) {
 //REQUIRED FIELDS: id, status, ta_full_name
 function buildStudentEntry(entry) {
     var elt = $(entryHtml);
-    elt.data("entryId", entry.id);
+    elt.attr("data-id", entry.id);
     elt.find(".id-input").val(entry.id);
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");
     }
     return elt;
+}
+
+function EntryList(props) {
+    var html = "";
+    props.entries.forEach(function(entry) {
+        var element = null;
+        if (entry.kind == "myEntry") {
+            element = buildMyEntry(entry);
+        } else if (entry.kind == "taEntry") {
+            element = buildTAEntry(entry);
+        } else if (entry.kind == "studentEntry") {
+            element = buildStudentEntry(entry);
+        }
+        if (element) {
+            html += element[0].outerHTML;
+        }
+    });
+    return <ul className="collection" id="queue" dangerouslySetInnerHTML={{__html: html}}/>;
+}
+
+function QueueContainer(props) {
+    return <>
+        <div id="status">
+            <div className="inner">
+            <div id="status_content"></div>
+            </div>
+        </div>
+        <EntryList entries={props.entries}/>
+    </>;
 }
 
 function positionOverlay() {
@@ -285,7 +314,7 @@ socket.on("remove", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     $("#queue li").each(function(index, item) {
-        if ($(item).data("entryId") == message.id) {
+        if ($(item).attr("data-id") == message.id) {
             if ($(item).hasClass("me")) {
                 $("#add_form").show();
             }
@@ -305,7 +334,7 @@ socket.on("help", function(message) {
         return;
     }
     $("#queue li").each(function(index, item) {
-        if ($(item).data("entryId") == message.id) {
+        if ($(item).attr("data-id") == message.id) {
             $(item).find("button").addClass("hide");
             $(item).find(".helping-text").text(message.data.ta_full_name + " is helping");
             if (ta_id) {
@@ -343,7 +372,7 @@ socket.on("cancel", function(message) {
         return;
     }
     $("#queue li").each(function(index, item) {
-        if ($(item).data("entryId") == message.id) {
+        if ($(item).attr("data-id") == message.id) {
             $(item).find(".helping-text").text("");
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
@@ -365,7 +394,7 @@ socket.on("done", function(message) {
         return;
     }
     $("#queue li").each(function(index, item) {
-        if ($(item).data("entryId") == message.id) {
+        if ($(item).attr("data-id") == message.id) {
             if ($(item).hasClass("me")) {
                 $("#add_form").show();
             }
