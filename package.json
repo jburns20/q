@@ -4,7 +4,13 @@
   "description": "An office hours queue for Carnegie Mellon's Principles of Imperative Computation class.",
   "main": "index.js",
   "author": "Jonathan Burns <jaburns@andrew.cmu.edu>",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "ejs": "^2.7.4",

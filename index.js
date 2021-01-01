@@ -8,6 +8,7 @@ var cookieParser = require('cookie-parser');
 var model = require("./model.js");
 var realtime = require("./realtime.js");
 var waittimes = require("./waittimes.js");
+var jstranslate = require("./jstranslate.js");
 
 var login = require("./routes/login.js");
 var home = require("./routes/home.js");
@@ -23,6 +24,7 @@ waittimes.init();
 app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({"extended": false}));
 app.use(cookieParser());
+app.use(jstranslate("static/js"));
 app.use(express.static('static'));
 app.use(function(req, res, next) {
     model.sql.sync().then(function() {
