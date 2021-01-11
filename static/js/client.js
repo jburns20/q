@@ -1,6 +1,6 @@
 const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
 const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
-const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'>Fix Question</button>";
+const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'><i class='fas fa-edit'></i></button>";
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
 
@@ -53,6 +53,7 @@ $(document).ready(function() {
     $('select').formSelect();
     $('.modal').modal();
 
+    // Enables confirmation for the Remove button
     $(document).on("click", ".remove-button", function(event) {
         if (!$(this).hasClass("confirming")) {
             $(".confirming").each(function() {
@@ -75,6 +76,12 @@ $(document).ready(function() {
             });
         }
     });
+
+    // Manages confirmation for fix question button
+    $(document).on("click", ".fix-question-button", function(event) {
+        // TODO: Pop up window to allow TA to fill out text to send to student
+    });
+
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
 
