@@ -426,7 +426,8 @@ socket.on("notifytime", function(message) {
         try {
             if (ta_id && ("Notification" in window) && (Notification.permission == "granted")) {
                 var notification = new Notification("Time Alert!", {
-                    "body": "You've been helping for " + message.min_elapsed + " minutes!"
+                    "body": "You've been helping for " + message.min_elapsed + " minutes!",
+                    "requireInteraction": true
                 });
             }
         } catch (error) {

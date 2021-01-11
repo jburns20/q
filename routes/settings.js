@@ -30,6 +30,8 @@ exports.get = function(req, res) {
         return Sequelize.Promise.props({
             webhook_url: options.slack_webhook(),
             cooldown_time: options.cooldown_time(),
+            notif_time_threshold: options.notif_time_threshold(),
+            notif_time_interval: options.notif_time_interval(),
             topics: function() {
                 return model.Topic.findAll({
                     where: {
@@ -59,6 +61,8 @@ exports.get = function(req, res) {
             current_semester: current_semester,
             slack_webhook: results.webhook_url,
             cooldown_time: results.cooldown_time,
+            notif_time_threshold: results.notif_time_threshold,
+            notif_time_interval: results.notif_time_interval,
             topics: results.topics,
             tas: results.tas,
             owner_email: config.owner_email,
