@@ -91,6 +91,30 @@ exports.help = function(entry_id, ta) {
     });
 };
 
+exports.fixq = function(entry_id) {
+    exports.seq = exports.seq + 1;
+    if(!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.emit("fixq", {
+        seq: exports.seq,
+        id: entry_id
+    });
+};
+
+exports.update = function(entry_id) {
+    exports.seq = exports.seq + 1;
+    if(!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.emit("update", {
+        seq: exports.seq,
+        id: entry_id
+    });
+};
+
 exports.cancel = function(entry_id, ta_id) {
     exports.seq = exports.seq + 1;
     if (!sio) {
