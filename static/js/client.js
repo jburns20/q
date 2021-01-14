@@ -331,6 +331,7 @@ socket.on("update", function(message) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".help-button").removeClass("hide");
                 $(item).find(".fix-question-button").removeClass("hide");
+                $(item).find(".helping-text").text("");
             } 
         }
     });
