@@ -3,15 +3,13 @@
  * for a given amount of time. This is to help with remote OH to ping TAs who
  * have stayed with students for long periods of time.
  * 
- * Active TAs are checked each minute after start_timre() has been called to 
+ * Active TAs are checked each minute after init() has been called to 
  * check whether they should receive a notification. Because of this, 
  * notifications may be off by up to 1 minute (although, this should make little 
  * difference from the perspective of the TA).
  * 
  * The proposed alternative was having a timer running for each TA once they
  * start helping, but that appeared to be more inefficient
- * 
- * TODO: cache active TAs so query doesn't need to be run every time
  */
 
 var Sequelize = require('sequelize');
@@ -30,13 +28,12 @@ exports.clear_helping_tas_cache = function() {
 }
 
 exports.init = function() {
-    // Set an interval to run every minute from the time the timr is started
+    // Set an interval to run every minute from the time the timer is started
     setInterval(() => {
         var now = new Date();
-        var active_tas = [];
         
         // Find all actively helping TAs
-        return Sequelize.Promise.props({
+        Sequelize.Promise.props({
             notif_time_threshold: options.notif_time_threshold(),
             notif_time_interval: options.notif_time_interval(),
             tas: function() {
@@ -48,18 +45,20 @@ exports.init = function() {
                     where: {"helping_id": {[Sequelize.Op.not]: null}},
                     include: [{model: model.Entry, as: "helping_entry"}]
                 });
-            } 
+            }()
         }).then(function(results) {
-            if (results.notif_time_threshold == 0) return; // All notifs disabled
-
-            helping_tas_cache = results.tas;
-            if (results.tas.length == 0) throw new Error();
+            console.log(results.notif_time_interval);
+            console.log(results.notif_time_threshold);
+            
+            helping_tas_cache = results.tas; // Update cache
+            if (results.notif_time_threshold == 0) throw new Error(); // Notifs are disabled, do nothing
+            if (results.tas.length == 0) throw new Error(); // No TAs helping, do nothing
 
             // Check each currently helping TA on their help time
             results.tas.forEach(function(ta) {
                 var student_help_time = ta.helping_entry.help_time;
-                var diff = now - student_help_time;
-                var min_elapsed = Math.floor((diff/1000)/60);
+                var ms_elapsed = now - student_help_time;
+                var min_elapsed = Math.floor(ms_elapsed/one_min_ms);
                 var min_past_threshold = min_elapsed - results.notif_time_threshold;
 
                 if (results.notif_time_interval == 0 && min_past_threshold == 0) {
@@ -71,7 +70,7 @@ exports.init = function() {
                     realtime.notifytime(ta.helping_entry.ta_id, min_elapsed); //TODO: pass a list instead? single call to realtime rather than many
                 }
             });
-        }).catch(function(err) {
+        }).catch(function() {
             return; // Do nothing on errors
         });
     }, one_min_ms);
