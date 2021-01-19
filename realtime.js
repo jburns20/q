@@ -146,15 +146,19 @@ exports.waittimes = function(times) {
     });
 }
 
-exports.notifytime = function(ta_id, min_elapsed) {
+// Takes in a list of tas to notify about their help time
+exports.notifytime = function(notif_tas) {
     exports.seq = exports.seq + 1;
     if (!sio) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    sio.emit("notifytime", {
-        seq: exports.seq,
-        id: ta_id,
-        min_elapsed: min_elapsed
+
+    notif_tas.forEach(ta => {
+        sio.emit("notifytime", {
+            seq: exports.seq,
+            id: ta.id,                  // ID of TA to notify
+            min_elapsed: ta.min_elapsed // Time TA has spent helping
+        });
     });
 }

@@ -65,8 +65,8 @@
             </div>
         </form>
         <p>If you have a Slack team set up for your course, you can set up a Slack Incoming Webhook <a href="https://my.slack.com/services/new/incoming-webhook/" target="_blank">here</a>. Otherwise, you may leave this field empty.</p>
-        <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
-            <div class="row">
+        <div class="row">
+            <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
                 Cooldown Warning Time Limit, in minutes (Use 0 to disable):
                 <div class="input-field inline">
                     <input type="number" name="cooldown_time" id="cooldown_time" value="<%= cooldown_time %>" min=0 required><label for="current_semester"></label>
@@ -74,8 +74,26 @@
                 <div class="input-field inline">
                     <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
                 </div>
-            </div>
-        </form>
+            </form>
+            <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
+                TA Help Notification Time Threshold, in minutes (Use 0 to disable):
+                <div class="input-field inline">
+                    <input type="number" name="notif_time_threshold" id="notif_time_threshold" value="<%= notif_time_threshold %>" min=0 required><label for="current_semester"></label>
+                </div>
+                <div class="input-field inline">
+                    <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+                </div>
+            </form>
+            <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
+                TA Help Notification Repeating Time Interval, in minutes (Use 0 to disable):
+                <div class="input-field inline">
+                    <input type="number" name="notif_time_interval" id="notif_time_interval" value="<%= notif_time_interval %>" min=0 required><label for="current_semester"></label>
+                </div>
+                <div class="input-field inline">
+                    <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+                </div>
+            </form>
+        </div>
     </div></div>
 
     <% if (current_semester != "") { %>
