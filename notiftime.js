@@ -47,12 +47,11 @@ exports.init = function() {
                 });
             }()
         }).then(function(results) {
-            console.log(results.notif_time_interval);
-            console.log(results.notif_time_threshold);
-            
             helping_tas_cache = results.tas; // Update cache
             if (results.notif_time_threshold == 0) throw new Error(); // Notifs are disabled, do nothing
             if (results.tas.length == 0) throw new Error(); // No TAs helping, do nothing
+
+            var notif_tas = []
 
             // Check each currently helping TA on their help time
             results.tas.forEach(function(ta) {
@@ -63,13 +62,15 @@ exports.init = function() {
 
                 if (results.notif_time_interval == 0 && min_past_threshold == 0) {
                     // No repeating notifs; only the original one
-                    realtime.notifytime(ta.helping_entry.ta_id, min_elapsed);
+                    notif_tas.push({id: ta.helping_entry.ta_id, min_elapsed: min_elapsed});
                 } 
                 else if (min_past_threshold >= 0 && min_past_threshold % results.notif_time_interval == 0) {
                     // Repeating notifs
-                    realtime.notifytime(ta.helping_entry.ta_id, min_elapsed); //TODO: pass a list instead? single call to realtime rather than many
+                    notif_tas.push({id: ta.helping_entry.ta_id, min_elapsed: min_elapsed});
                 }
             });
+
+            if (notif_tas.length > 0) realtime.notifytime(notif_tas);
         }).catch(function() {
             return; // Do nothing on errors
         });
