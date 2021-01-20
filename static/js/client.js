@@ -320,6 +320,8 @@ socket.on("fixq", function(message) {
                 } catch (error) {
                     console.log("There was an error showing a browser notification.");
                 }
+
+                M.Modal.getInstance($("#update_modal")).open();
             }
         }
     });
