@@ -385,8 +385,6 @@ function post_done(req, res) {
     });
 }
 
-//TODO: Add/edit functions to support updateQ popup
-
 function post_fixq(req, res) {
     var id = req.body.entry_id;
     model.sql.transaction(function(t) {
@@ -420,7 +418,7 @@ function post_fixq(req, res) {
 
 function post_update(req, res) {
     var id = req.body.entry_id;
-    var updatedQuestion = req.body.question;
+    var updated_question = req.body.question;
 
     model.sql.transaction(function(t) {
         return model.Entry.findByPk(id, {
@@ -435,7 +433,7 @@ function post_update(req, res) {
             }
             return entry.update({
                 blocked: false,
-                question: updatedQuestion
+                question: updated_question
             }, {transaction: t});
         })
     }).then(function(result) {
