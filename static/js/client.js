@@ -3,7 +3,7 @@ const cancelHtml = "<button class='entry-item cancel-button hide waves-effect wa
 const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'><i class='fas fa-edit'></i></button>";
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
-const updateHtml = "<button class='entry-item update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='UPDATE'>Update Question</button>";
+const openUpdateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
 
 const entryHtml = `
     <li class='collection-item'>
@@ -18,7 +18,7 @@ const entryHtml = `
                 <div class='entry-item entry-spacer'></div>
                 <div class='entry-item entry-container entry-buttons'>
                     ${fixqHtml}
-                    ${updateHtml}
+                    ${openUpdateQuestionModalHtml}
                     ${removeHtml}
                     ${helpHtml}
                     ${cancelHtml}
@@ -84,6 +84,13 @@ $(document).ready(function() {
         // TODO: Pop up window to allow TA to fill out text to send to student
     });
 
+    $(document).on("click", ".open-update-question-button", function(event) {
+        var elt = $("#update_question_modal");
+        elt.find(".id-input").val($("#queue").find(".me").data("entryId"));
+        M.Modal.getInstance(elt).open();
+        event.preventDefault();
+    });
+
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
 
@@ -97,6 +104,8 @@ $(document).ready(function() {
         disable_updates = true;
         submitAddForm(true);
     })
+
+    $('input#question, textarea#question').characterCounter();
 });
 
 
@@ -155,6 +164,9 @@ function buildMyEntry(entry) {
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");
     } else {
+        if (entry.blocked) {
+            elt.find(".open-update-question-button").removeClass("hide");
+        }
         elt.find(".remove-button").removeClass("hide");
     }
     return elt;
@@ -297,7 +309,6 @@ socket.on("add", function(message) {
     updateStatus();
 });
 
-//TODO: UPDATE MODAL STUFFS
 socket.on("fixq", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
@@ -309,7 +320,7 @@ socket.on("fixq", function(message) {
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".helping-text").text("Please update your question");
-                $(item).find(".update-question-button").removeClass("hide");
+                $(item).find(".open-update-question-button").removeClass("hide");
 
                 try {
                     if (("Notification" in window) && (Notification.permission == "granted")) {
@@ -320,26 +331,34 @@ socket.on("fixq", function(message) {
                 } catch (error) {
                     console.log("There was an error showing a browser notification.");
                 }
+
+                var elt = $("#update_question_modal");
+                elt.find(".id-input").val(message.id);
+                M.Modal.getInstance(elt).open();
+            }
+            else if (ta_id) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".helping-text").text("Student is updating question");
             }
         }
     });
 });
 
-socket.on("update", function(message) {
+socket.on("update-question", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
-    
+
+    if (ta_id) { // A student's question is updated, reload
+        window.location.reload();
+        return;
+    }
+
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
             $(item).find("button").addClass("hide");
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
-            } else if (ta_id && !ta_helping_id) {
-                $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".help-button").removeClass("hide");
-                $(item).find(".fix-question-button").removeClass("hide");
-                $(item).find(".helping-text").text("");
-            } 
+            }
         }
     });
 });
