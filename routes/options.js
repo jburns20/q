@@ -10,7 +10,7 @@ var config = require("../config.json");
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
 var options_cache = {};
-var protected_keys = ["current_semester", "slack_webhook", "cooldown_time"];
+var protected_keys = ["current_semester", "slack_webhook", "ask_question_guide_link", "cooldown_time"];
 
 exports.get_string = function(key, default_value) {
     if (default_value === undefined) {
@@ -70,9 +70,12 @@ exports.current_semester = function() {
 exports.slack_webhook = function() {
     return exports.get_string("slack_webhook", "");
 };
+exports.ask_question_guide_link = function() {
+    return exports.get_string("ask_question_guide_link", "");
+};
 exports.cooldown_time = function() {
     return exports.get_number("cooldown_time", 0);
-}
+};
 
 exports.get = function(req, res) {
     if (req.query.key == "frozen") {
@@ -121,6 +124,8 @@ function validate(key, value) {
     } else if (key == "current_semester" && RegExp("^[SMNF][0-9][0-9]$").test(value)) {
         return value;
     } else if (key == "slack_webhook") {
+        return value;
+    } else if (key == "ask_question_guide_link") {
         return value;
     } else if (key == "cooldown_time" && parseFloat(value) >= 0) {
         return parseFloat(value).toString();
@@ -191,6 +196,8 @@ function post_prop_update(req, key, prev_value, value) {
     } else if (key == "slack_webhook") {
         waittimes.update_slack();
         return "Webhook URL updated";
+    } else if (key == "ask_question_guide_link") {
+        return "Fix Question URL updated";
     } else if (key == "cooldown_time") {
         if (parseFloat(prev_value) > 0 && parseFloat(value) > 0) {
             return "Cooldown warning time limit updated";

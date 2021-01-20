@@ -70,6 +70,7 @@ exports.get = function(req, res) {
                     order: [['due_date', 'ASC']]
                 })
             }(),
+            guide_url: options.ask_question_guide_link(),
             frozen: options.frozen(),
             message: options.message()
         }).then(function(results) {
@@ -85,6 +86,7 @@ exports.get = function(req, res) {
                 entries: results.entries,
                 topics: results.topics,
                 seq: realtime.seq,
+                guide_url: results.guide_url,
                 frozen: results.frozen,
                 message: results.message,
                 waittimes: waittimes.get(),
