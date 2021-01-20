@@ -56,6 +56,7 @@
             <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
             </div>
         </form>
+        <p>If you have a Slack team set up for your course, you can set up a Slack Incoming Webhook <a href="https://my.slack.com/services/new/incoming-webhook/" target="_blank">here</a>. Otherwise, you may leave this field empty.</p>
         <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
             <div class="input-field inline col m10 s12">
             <input type="url" name="slack_webhook" id="slack_webhook" value="<%= slack_webhook %>"><label for="slack_webhook">Slack Webhook URL</label>
@@ -64,7 +65,15 @@
             <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
             </div>
         </form>
-        <p>If you have a Slack team set up for your course, you can set up a Slack Incoming Webhook <a href="https://my.slack.com/services/new/incoming-webhook/" target="_blank">here</a>. Otherwise, you may leave this field empty.</p>
+        <p>This link will be displayed to students when asked to fix their question. If not needed, you may leave this field empty.</p>
+        <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
+            <div class="input-field inline col m10 s12">
+            <input type="url" name="ask_question_guide_link" id="ask_question_guide_link" value="<%= ask_question_guide_link %>"><label for="ask_question_guide_link">Diderot "Asking Questions" Guide URL</label>
+            </div>
+            <div class="input-field inline col m2 s12 center-btn">
+            <button type="submit" class='btn waves-effect waves-light cyan'>Change</button>
+            </div>
+        </form>
         <form action="/options" method="POST" class="row" style="margin-bottom: 0px;">
             <div class="row">
                 Cooldown Warning Time Limit, in minutes (Use 0 to disable):
