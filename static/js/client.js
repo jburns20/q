@@ -335,6 +335,10 @@ socket.on("fixq", function(message) {
                 elt.find(".id-input").val(message.id);
                 M.Modal.getInstance(elt).open();
             }
+            else if (ta_id) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".helping-text").text("Student is updating question");
+            }
         }
     });
 });
