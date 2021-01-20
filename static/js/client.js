@@ -3,7 +3,7 @@ const cancelHtml = "<button class='entry-item cancel-button hide waves-effect wa
 const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'><i class='fas fa-edit'></i></button>";
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
-const updateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
+const openUpdateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
 
 const entryHtml = `
     <li class='collection-item'>
@@ -18,7 +18,7 @@ const entryHtml = `
                 <div class='entry-item entry-spacer'></div>
                 <div class='entry-item entry-container entry-buttons'>
                     ${fixqHtml}
-                    ${updateQuestionModalHtml}
+                    ${openUpdateQuestionModalHtml}
                     ${removeHtml}
                     ${helpHtml}
                     ${cancelHtml}
