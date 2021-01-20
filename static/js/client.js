@@ -3,7 +3,7 @@ const cancelHtml = "<button class='entry-item cancel-button hide waves-effect wa
 const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'><i class='fas fa-edit'></i></button>";
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
-const updateHtml = "<button class='entry-item update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='UPDATE'>Update Question</button>";
+const updateHtml = "<button class='entry-item update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='UPDATE-QUESTION'>Update Question</button>";
 
 const entryHtml = `
     <li class='collection-item'>
@@ -321,13 +321,17 @@ socket.on("fixq", function(message) {
                     console.log("There was an error showing a browser notification.");
                 }
 
-                M.Modal.getInstance($("#update_modal")).open();
+                M.Modal.getInstance($("#update_question_modal")).open();
             }
         }
     });
 });
 
-socket.on("update", function(message) {
+socket.on("open-update-question-modal", function(message) {
+    M.Modal.getInstance($("#update_question_modal")).open();
+});
+
+socket.on("update-question", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     
