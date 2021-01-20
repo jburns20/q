@@ -385,8 +385,6 @@ function post_done(req, res) {
     });
 }
 
-//TODO: Add/edit functions to support updateQ popup
-
 function post_fixq(req, res) {
     var id = req.body.entry_id;
     model.sql.transaction(function(t) {
@@ -420,6 +418,8 @@ function post_fixq(req, res) {
 
 function post_update(req, res) {
     var id = req.body.entry_id;
+    var updated_question = req.body.question;
+
     model.sql.transaction(function(t) {
         return model.Entry.findByPk(id, {
             transaction: t,
@@ -433,6 +433,7 @@ function post_update(req, res) {
             }
             return entry.update({
                 blocked: false,
+                question: updated_question
             }, {transaction: t});
         })
     }).then(function(result) {
@@ -455,7 +456,7 @@ exports.post = function(req, res) {
         case "CANCEL": post_cancel(req, res); break;
         case "DONE": post_done(req, res); break;
         case "FIXQ": post_fixq(req, res); break;
-        case "UPDATE": post_update(req, res); break;
+        case "UPDATE-QUESTION": post_update(req, res); break;
         default:
             respond(req, res, "Invalid action: " + action);
     }

@@ -71,7 +71,7 @@
     <label for="topic">What would you like help with?</label>
   </div>
   <div class="input-field inline col l10 m10 s12">
-      <input id="question" name="question" type="text" minlength=3 required>
+      <input id="question" name="question" type="text" minlength=3 maxlength=255 data-length="255" required>
       <label for="question">Question</label>
   </div>
   <div class="input-field inline col l2 m2 s12 center-btn">
@@ -100,6 +100,28 @@
     <h4>You've just been helped</h4>
     <p>Use this time to think independently about the problem you're facing, try a different approach, or use other class resources to learn more about the topic. <strong>Please wait at least <span id="modal_cooldown_time"></span> before adding your name to the queue again.</strong></p>
     <p id="cooldown_override_text">If you have specific circumstances that require you to enter the queue immediately, you may do so by clicking <a href='javascript:;' id="cooldown_override_submit">here</a>, but please note that we may prioritize other students' questions before yours.</p>
+  </div>
+  <div class="modal-footer">
+    <a href="javascript:;" class="modal-close waves-effect light-blue-text text-darken-1 btn-flat">Close</a>
+  </div>
+</div>
+
+
+<div id="update_question_modal" class="modal">
+  <div class="modal-content center-align">
+    <h4>Please update your question!</h4>
+    <p>Before we can help you, we need a bit more details from you.</p>
+    <p>Especially for homework problems, we want to know <strong>what you've tried and/or already understand</strong> in addition to what you're looking for guidance on. Be sure to read the Diderot Guides to Success chapter "Asking Questions" for more on this!</p>
+    <form method='POST'>
+      <input type='hidden' class='id-input' name='entry_id'>
+        <div class="row">
+          <div class="input-field col l12 m12 s12">
+            <textarea id="question" name="question" type="text" minlength=3 maxlength=255 data-length="255" required class="materialize-textarea"></textarea>
+            <label for="question">Question (max 255 characters)</label>
+          </div>
+        </div>
+      <button class='waves-effect waves-light btn cyan' name='action' value='UPDATE-QUESTION'>Update Question</button>
+    </form>
   </div>
   <div class="modal-footer">
     <a href="javascript:;" class="modal-close waves-effect light-blue-text text-darken-1 btn-flat">Close</a>
