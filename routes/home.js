@@ -420,6 +420,8 @@ function post_fixq(req, res) {
 
 function post_update(req, res) {
     var id = req.body.entry_id;
+    var updatedQuestion = req.body.question;
+
     model.sql.transaction(function(t) {
         return model.Entry.findByPk(id, {
             transaction: t,
@@ -433,6 +435,7 @@ function post_update(req, res) {
             }
             return entry.update({
                 blocked: false,
+                question: updatedQuestion
             }, {transaction: t});
         })
     }).then(function(result) {

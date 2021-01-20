@@ -340,7 +340,6 @@ socket.on("fixq", function(message) {
 });
 
 socket.on("update-question", function(message) {
-    console.log("update-question emitted");
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
     
@@ -349,11 +348,8 @@ socket.on("update-question", function(message) {
             $(item).find("button").addClass("hide");
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
-            } else if (ta_id && !ta_helping_id) {
-                $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".help-button").removeClass("hide");
-                $(item).find(".fix-question-button").removeClass("hide");
-                $(item).find(".helping-text").text("");
+            } else if (ta_id) {
+                window.location.reload();
             } 
         }
     });
