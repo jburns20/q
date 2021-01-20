@@ -156,7 +156,8 @@ $(document).ready(function() {
         user_id: entry.user_id,
         topic_name: entry.topic ? entry.topic.name : "other",
         ta_full_name: entry.TA ? entry.TA.full_name : "",
-        question: entry.question
+        question: entry.question,
+        blocked: entry.blocked
     }).replace(/<\//g, "<\\/"); %>));
     <%_ if (entry.status == 1) { %>
       $("#modal_ta_name").text("<%= entry.TA.full_name %>");
