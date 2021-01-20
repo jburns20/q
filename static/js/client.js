@@ -85,7 +85,9 @@ $(document).ready(function() {
     });
 
     $(document).on("click", ".open-update-question-button", function(event) {
-        M.Modal.getInstance($("#update_question_modal")).open();
+        var elt = $("#update_question_modal");
+        elt.find(".id-input").val($("#queue").find(".me").data("entryId"));
+        M.Modal.getInstance(elt).open();
         event.preventDefault();
     });
 
@@ -160,6 +162,9 @@ function buildMyEntry(entry) {
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");
     } else {
+        if (entry.blocked) {
+            elt.find(".open-update-question-button").removeClass("hide");
+        }
         elt.find(".remove-button").removeClass("hide");
     }
     return elt;
