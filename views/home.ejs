@@ -115,9 +115,9 @@
     <form method='POST'>
       <input type='hidden' class='id-input' name='entry_id'>
       <p>
-        <div class="input-field inline col l10 m10 s12">
-          <input id="question" name="question" type="text" minlength=3 required>
-          <label for="question">Question</label>
+        <div class="input-field inline col">
+          <textarea id="question" name="question" type="text" minlength=3 maxlength=255 rows=5 required></textarea>
+          <label for="question">Question (max 255 characters)</label>
         </div>
       </p>
       <button class='waves-effect waves-light btn cyan' name='action' value='UPDATE-QUESTION'>Update Question</button>
