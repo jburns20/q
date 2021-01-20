@@ -104,6 +104,8 @@ $(document).ready(function() {
         disable_updates = true;
         submitAddForm(true);
     })
+
+    $('input#question, textarea#question').characterCounter();
 });
 
 
