@@ -326,7 +326,9 @@ socket.on("fixq", function(message) {
                     console.log("There was an error showing a browser notification.");
                 }
 
-                M.Modal.getInstance($("#update_question_modal")).open();
+                var elt = $("#update_question_modal");
+                elt.find(".id-input").val(message.id);
+                M.Modal.getInstance(elt).open();
             }
         }
     });
