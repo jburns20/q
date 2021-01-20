@@ -307,7 +307,6 @@ socket.on("add", function(message) {
     updateStatus();
 });
 
-//TODO: UPDATE MODAL STUFFS
 socket.on("fixq", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
@@ -342,15 +341,18 @@ socket.on("fixq", function(message) {
 socket.on("update-question", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
-    
+
+    if (ta_id) { // A student's question is updated, reload
+        window.location.reload();
+        return;
+    }
+
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
             $(item).find("button").addClass("hide");
             if ($(item).hasClass("me")) {
                 $(item).find(".remove-button").removeClass("hide");
-            } else if (ta_id) {
-                window.location.reload();
-            } 
+            }
         }
     });
 });
