@@ -76,11 +76,11 @@ $(document).ready(function() {
             $(".fix-confirming").each(function() {
                 $(this).removeClass("fix-confirming red white-text")
                     .addClass("grey lighten-2 grey-text text-darken-3")
-                    .text("").html("<i class='fas fa-edit qedit-icon'></i>");
+                    .html("<i class='fas fa-edit qedit-icon'></i>");
             });
             $(this).addClass("fix-confirming red white-text")
                 .removeClass("grey lighten-2 grey-text text-darken-3")
-                .html("").text("Ask to Fix");
+                .text("Ask to Fix");
             event.preventDefault();
         }
     });
@@ -97,7 +97,7 @@ $(document).ready(function() {
             $(".fix-confirming").each(function() {
                 $(this).removeClass("fix-confirming red white-text")
                     .addClass("grey lighten-2 grey-text text-darken-3")
-                    .text("").html("<i class='fas fa-edit qedit-icon'></i>");
+                    .html("<i class='fas fa-edit qedit-icon'></i>");
             });
         }
     });
