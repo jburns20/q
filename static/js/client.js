@@ -155,16 +155,17 @@ function buildTAEntry(entry) {
     } else if (entry.status == 1) {
         elt.find(".helping-text").html(`${entry.ta_full_name} is helping ${xHtml}`);
     } else if (!ta_helping_id) {
+        elt.find(".remove-button").removeClass("hide");
         if (ta_id) {
-            elt.find(".remove-button").removeClass("hide");
-            if (!entry.blocked) {
-                elt.find(".help-button").removeClass("hide");
+            elt.find(".help-button").removeClass("hide");
+            if (!entry.update_requested) {
                 elt.find(".fix-question-button").removeClass("hide");
             } else {
+                elt.find(".help-button")
+                    .removeClass("waves-light btn blue")
+                    .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
                 elt.find(".helping-text").text("Student is updating question");
             }
-        } else {
-            elt.find(".remove-button").removeClass("hide");
         }
     }
     return elt;
@@ -182,7 +183,7 @@ function buildMyEntry(entry) {
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");
     } else {
-        if (entry.blocked) {
+        if (entry.update_requested) {
             elt.find(".open-update-question-button").removeClass("hide");
         }
         elt.find(".remove-button").removeClass("hide");
@@ -356,6 +357,9 @@ socket.on("fixq", function(message) {
             }
             else if (ta_id) {
                 $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".help-button").removeClass("hide")
+                    .removeClass("waves-light btn blue")
+                    .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
                 $(item).find(".helping-text").text("Student is updating question");
             }
         }
@@ -428,6 +432,11 @@ socket.on("help", function(message) {
                 } else {
                     $("#modal_ta_video_chat_url").hide();
                 }
+                
+                const update_question_modal = M.Modal.getInstance($("#update_question_modal"));
+                if (update_question_modal.isOpen) {
+                    update_question_modal.close();
+                }
                 M.Modal.getInstance($("#help_modal")).open();
             }
         }
@@ -450,7 +459,10 @@ socket.on("cancel", function(message) {
                 M.Modal.getInstance($("#help_modal")).close();
             } else if (ta_id && !ta_helping_id) {
                 $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".help-button").removeClass("hide");
+                // revert color if student was helped while updating question
+                $(item).find(".help-button").removeClass("hide")
+                    .removeClass("waves btn-flat grey lighten-3 grey-text text-darken-2")
+                    .addClass("waves-light btn blue");
                 $(item).find(".fix-question-button").removeClass("hide");
             }
         }
