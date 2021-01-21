@@ -97,7 +97,7 @@ exports.request_update = function(entry_id) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    sio.emit("request_update", {
+    sio.emit("request-update", {
         seq: exports.seq,
         id: entry_id
     });

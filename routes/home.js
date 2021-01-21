@@ -461,7 +461,7 @@ exports.post = function(req, res) {
         case "HELP": post_help(req, res); break;
         case "CANCEL": post_cancel(req, res); break;
         case "DONE": post_done(req, res); break;
-        case "REQUEST_UPDATE": post_request_update(req, res); break;
+        case "REQUEST-UPDATE": post_request_update(req, res); break;
         case "UPDATE-QUESTION": post_update(req, res); break;
         default:
             respond(req, res, "Invalid action: " + action);
