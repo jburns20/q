@@ -16,7 +16,7 @@
     "sanitize-html": "^1.27.5",
     "sequelize": "^5.22.3",
     "slack-webhook": "^1.0.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "validator": "^9.4.1"
   }
 }
