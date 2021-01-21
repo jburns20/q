@@ -51,6 +51,10 @@ $(document).ready(function() {
     $('select').formSelect();
     $('.modal').modal();
 
+    // MaterializeCSS hides the native select, which causes the data-error to not show up
+    // This is a little bit of a "hacky" way to ensure the user selects a topic
+    $('select[required]').css({display: "block", top: "0%", padding: 0, opacity: 0, position: 'absolute'});
+
     $(document).on("click", ".remove-button", function(event) {
         if (!$(this).hasClass("confirming")) {
             $(".confirming").each(function() {
