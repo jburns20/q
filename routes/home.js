@@ -204,7 +204,7 @@ function post_add(req, res) {
             topic_id: topic_id,
             question: question,
             cooldown_override: (cooldown_override ? 1 : 0),
-            blocked: false,
+            update_requested: false,
         });
     }).then(function(instance) {
         entries_cache = null;
@@ -267,16 +267,14 @@ function post_help(req, res) {
             if (!entry) {
                 throw new Error("The student you were trying to help is not on the queue");
             }
-            if (entry.blocked) {
-                throw new Error("Student needs to update question");
-            }
             if (entry.status != 0) {
                 throw new Error("That student is already being helped");
             }
             return entry.update({
                 status: 1,
                 help_time: new Date(),
-                ta_id: req.session.TA.id
+                ta_id: req.session.TA.id,
+                update_requested: false
             }, {transaction: t});
         }).then(function() {
             var num_today = req.session.TA.num_today;
@@ -400,11 +398,11 @@ function post_fixq(req, res) {
             if (!entry) {
                 throw new Error("The student is not on the queue");
             }
-            if (entry.blocked) {
+            if (entry.update_requested) {
                 throw new Error("Student has already been asked to update question");
             }
             return entry.update({
-                blocked: true,
+                update_requested: true,
             }, {transaction: t});
         })
     }).then(function(result) {
@@ -430,11 +428,11 @@ function post_update(req, res) {
             if (!entry) {
                 throw new Error("The student is not on the queue");
             }
-            if (!entry.blocked) {
+            if (!entry.update_requested) {
                 throw new Error("Question has already been updated");
             }
             return entry.update({
-                blocked: false,
+                update_requested: false,
                 question: updated_question
             }, {transaction: t});
         })

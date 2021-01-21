@@ -50,7 +50,7 @@ exports.Entry = sequelize.define("entry", {
     "status": Sequelize.INTEGER,  //0: on queue, 1: being helped, 2: helped
     "question": Sequelize.STRING,
     "cooldown_override": Sequelize.BOOLEAN,
-    "blocked": Sequelize.BOOLEAN //True: cannot be helped, False: can be helped
+    "update_requested": Sequelize.BOOLEAN
 }, {
     timestamps: false,
     underscored: true
