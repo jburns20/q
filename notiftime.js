@@ -21,12 +21,6 @@ var options = require("./routes/options.js");
 /** Number of milliseconds in a minute */
 const one_min_ms = 60 * 1000;
 
-var helping_tas_cache = null;
-
-exports.clear_helping_tas_cache = function() {
-    helping_tas_cache = null;
-}
-
 exports.init = function() {
     // Set an interval to run every minute from the time the timer is started
     setInterval(() => {
@@ -36,18 +30,11 @@ exports.init = function() {
         Sequelize.Promise.props({
             notif_time_threshold: options.notif_time_threshold(),
             notif_time_interval: options.notif_time_interval(),
-            tas: function() {
-                if (helping_tas_cache) {
-                    return Promise.resolve(helping_tas_cache);
-                }
-
-                return model.TA.findAll({
+            tas: model.TA.findAll({
                     where: {"helping_id": {[Sequelize.Op.not]: null}},
                     include: [{model: model.Entry, as: "helping_entry"}]
-                });
-            }()
+            })
         }).then(function(results) {
-            helping_tas_cache = results.tas; // Update cache
             if (results.notif_time_threshold == 0) throw new Error(); // Notifs are disabled, do nothing
             if (results.tas.length == 0) throw new Error(); // No TAs helping, do nothing
 

@@ -241,7 +241,6 @@ function post_rem(req, res) {
     }).then(function() {
         entries_cache = null;
         realtime.remove(entry.id);
-        notiftime.clear_helping_tas_cache();
         return waittimes.update();
     }).then(function(waittimes) {
         respond(req, res, "Entry removed");
@@ -290,7 +289,6 @@ function post_help(req, res) {
     }).then(function(result) {
         entries_cache = null;
         realtime.help(id, req.session.TA);
-        notiftime.clear_helping_tas_cache();
         return waittimes.update();
     }).then(function(waittimes) {
         respond(req, res, null);
@@ -327,7 +325,6 @@ function post_cancel(req, res) {
     }).then(function(result) {
         entries_cache = null;
         realtime.cancel(id, ta.id);
-        notiftime.clear_helping_tas_cache();
         return waittimes.update();
     }).then(function(waittimes) {
         respond(req, res, null);
@@ -377,7 +374,6 @@ function post_done(req, res) {
     }).then(function(result) {
         entries_cache = null;
         realtime.done(id, ta.id);
-        notiftime.clear_helping_tas_cache();
         return waittimes.update();
     }).then(function(waittimes) {
         respond(req, res, message);

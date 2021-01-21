@@ -419,20 +419,21 @@ socket.on("waittimes", function(message) {
 
 socket.on("notifytime", function(message) {
     if (disable_updates) return;
-    checkAndUpdateSeq(message.seq);
 
-    if (ta_id == message.id) {
-        console.log("Got elapsed time: " + message.min_elapsed);
-        try {
-            if (ta_id && ("Notification" in window) && (Notification.permission == "granted")) {
-                var notification = new Notification("Time Alert!", {
-                    "body": "You've been helping for " + message.min_elapsed + " minutes!",
-                    "requireInteraction": true
-                });
+    message.notif_tas.forEach(ta => {
+        if (ta_id == ta.id) {
+            try {
+                if (("Notification" in window) && (Notification.permission == "granted")) {
+                    var notification = new Notification("Time Alert!", {
+                        "body": "You've been helping for " + ta.min_elapsed + " minutes!",
+                        "requireInteraction": true
+                    });
+                }
+            } catch (error) {
+                console.log("There was an error showing a browser notification.");
             }
-        } catch (error) {
-            console.log("There was an error showing a browser notification.");
+            return; // Can only have at most one notification
         }
-    }
+    });
 });
 
