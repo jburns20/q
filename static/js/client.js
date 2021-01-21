@@ -1,6 +1,7 @@
+const fixQuestionIconHtml = "<i class='qedit-icon material-icons' style='font-size: 20px; margin: 0px -15px;'>help_outline</i>"
 const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
 const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
-const requestUpdateHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat btn-small grey lighten-2 grey-text text-darken-3' name='action' value='REQUEST-UPDATE'><i class='qedit-icon material-icons' style='margin: 0px -16px;'>help_outline</i></button>";
+const requestUpdateHtml = `<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='REQUEST-UPDATE'>${fixQuestionIconHtml}</button>`;
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
 const openUpdateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
@@ -76,7 +77,7 @@ $(document).ready(function() {
             $(".fix-confirming").each(function() {
                 $(this).removeClass("fix-confirming red white-text")
                     .addClass("grey lighten-2 grey-text text-darken-3")
-                    .html("<i class='qedit-icon'></i>");
+                    .html(fixQuestionIconHtml);
             });
             $(this).addClass("fix-confirming red white-text")
                 .removeClass("grey lighten-2 grey-text text-darken-3")
@@ -97,7 +98,7 @@ $(document).ready(function() {
             $(".fix-confirming").each(function() {
                 $(this).removeClass("fix-confirming red white-text")
                     .addClass("grey lighten-2 grey-text text-darken-3")
-                    .html("<i class='qedit-icon'></i>");
+                    .html(fixQuestionIconHtml);
             });
         }
     });
