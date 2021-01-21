@@ -414,6 +414,11 @@ socket.on("help", function(message) {
                 } else {
                     $("#modal_ta_video_chat_url").hide();
                 }
+                
+                const update_question_modal = M.Modal.getInstance($("#update_question_modal"));
+                if (update_question_modal.isOpen) {
+                    update_question_modal.close();
+                }
                 M.Modal.getInstance($("#help_modal")).open();
             }
         }
