@@ -429,6 +429,13 @@ function post_update(req, res) {
             if (!entry) {
                 throw new Error("The student is not on the queue");
             }
+            // Only entries that have not yet been helped can be updated.
+            // You need to be logged in as the student who matches the entry.
+            if (!(entry.status == 0 && req.session
+                && (req.session.id == entry.session_id
+                    || (p.is_logged_in(req) && req.session.user_id == entry.user_id)))) {
+                throw new Error("You don't have permission to update that entry");
+            }
             if (!entry.update_requested) {
                 throw new Error("Question has already been updated");
             }
