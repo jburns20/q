@@ -141,7 +141,7 @@ function validate(key, value) {
 // Creates an update message for float option fields
 function create_float_update_message(field_name, prev_value, value) {
     if (parseFloat(prev_value) > 0 && parseFloat(value) > 0) {
-        return field_name + " time limit updated";
+        return field_name + " time updated";
     } else if (parseFloat(prev_value) > 0) {
         return field_name + " removed";
     } else if (parseFloat(value) > 0) {
@@ -208,7 +208,6 @@ function post_prop_update(req, key, prev_value, value) {
             })
         }).then(function() {
             home.clear_entries_cache();
-            notiftime.clear_helping_tas_cache();
             return "Current semester changed. The queue has been cleared and all TAs have been logged out.";
         });
     } else if (key == "slack_webhook") {
