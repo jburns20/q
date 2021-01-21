@@ -185,6 +185,7 @@ function buildMyEntry(entry) {
     } else {
         if (entry.update_requested) {
             elt.find(".open-update-question-button").removeClass("hide");
+            elt.find(".helping-text").text("Please update your question");
         }
         elt.find(".remove-button").removeClass("hide");
     }
@@ -343,8 +344,9 @@ socket.on("request-update", function(message) {
 
                 try {
                     if (("Notification" in window) && (Notification.permission == "granted")) {
-                        var notification = new Notification("Your question is not detailed enough!", {
-                            "body": "Please update your question."
+                        var notification = new Notification("Update Question Request", {
+                            "body": "Please refine your question so we can help you more efficiently.",
+                            "requireInteraction": true
                         });
                     }
                 } catch (error) {
@@ -419,7 +421,8 @@ socket.on("help", function(message) {
                 try {
                     if (("Notification" in window) && (Notification.permission == "granted")) {
                         var notification = new Notification("It's your turn to get help!", {
-                            "body": message.data.ta_full_name + " is ready to help you."
+                            "body": message.data.ta_full_name + " is ready to help you.",
+                            "requireInteraction": true
                         });
                     }
                 } catch (error) {
