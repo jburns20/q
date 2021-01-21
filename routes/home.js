@@ -447,8 +447,6 @@ function post_update(req, res) {
     }).then(function(result) {
         entries_cache = null;
         realtime.update(id);
-        return waittimes.update();
-    }).then(function(waittimes) {
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
