@@ -91,13 +91,13 @@ exports.help = function(entry_id, ta) {
     });
 };
 
-exports.fixq = function(entry_id) {
+exports.request_update = function(entry_id) {
     exports.seq = exports.seq + 1;
     if(!sio) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    sio.emit("fixq", {
+    sio.emit("request_update", {
         seq: exports.seq,
         id: entry_id
     });

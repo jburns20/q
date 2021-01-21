@@ -1,6 +1,6 @@
 const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
 const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
-const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'><i class='fas fa-edit'></i></button>";
+const requestUpdateHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='REQUEST_UPDATE'><i class='fas fa-edit'></i></button>";
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
 const openUpdateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
@@ -17,7 +17,7 @@ const entryHtml = `
                 </div>
                 <div class='entry-item entry-spacer'></div>
                 <div class='entry-item entry-container entry-buttons'>
-                    ${fixqHtml}
+                    ${requestUpdateHtml}
                     ${openUpdateQuestionModalHtml}
                     ${removeHtml}
                     ${helpHtml}
@@ -310,7 +310,7 @@ socket.on("add", function(message) {
     updateStatus();
 });
 
-socket.on("fixq", function(message) {
+socket.on("request_update", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
 

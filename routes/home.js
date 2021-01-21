@@ -385,7 +385,7 @@ function post_done(req, res) {
     });
 }
 
-function post_fixq(req, res) {
+function post_request_update(req, res) {
     var id = req.body.entry_id;
     model.sql.transaction(function(t) {
         if (!p.is_ta(req)) {
@@ -407,7 +407,7 @@ function post_fixq(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
-        realtime.fixq(id);
+        realtime.request_update(id);
         return waittimes.update();
     }).then(function(waittimes) {
         respond(req, res, null);
@@ -455,7 +455,7 @@ exports.post = function(req, res) {
         case "HELP": post_help(req, res); break;
         case "CANCEL": post_cancel(req, res); break;
         case "DONE": post_done(req, res); break;
-        case "FIXQ": post_fixq(req, res); break;
+        case "REQUEST_UPDATE": post_request_update(req, res); break;
         case "UPDATE-QUESTION": post_update(req, res); break;
         default:
             respond(req, res, "Invalid action: " + action);
