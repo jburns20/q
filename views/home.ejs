@@ -18,7 +18,8 @@
   </div>
   <%_ if (session && (session.TA || session.owner)) { _%>
   <form id="message_form" method='POST' action="/options" class='center input-field'>
-    <input type='text' placeholder="most basic HTML tags are supported" style='width: 50%;' name="message" value='<%= message %>'>
+    <textarea id="message" placeholder="most basic HTML tags are supported" style='width: 50%;' name="message" maxlength=255 data-length="255" required class="materialize-textarea"><%= message %></textarea>
+    <br>
     <button type='button' class='btn-flat' onclick="cancelEditMessage(); return false;">Cancel</button>
     <button type='submit' class='btn waves-effect waves-light cyan'>Submit</button>
   </form>
@@ -71,7 +72,7 @@
     <label for="topic">What would you like help with?</label>
   </div>
   <div class="input-field inline col l10 m10 s12">
-      <input id="question" name="question" type="text" minlength=3 required>
+      <textarea id="question" name="question" type="text" minlength=3 maxlength=255 data-length="255" required class="materialize-textarea"></textarea>
       <label for="question">Question</label>
   </div>
   <div class="input-field inline col l2 m2 s12 center-btn">
