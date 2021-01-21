@@ -398,6 +398,9 @@ function post_request_update(req, res) {
             if (!entry) {
                 throw new Error("The student is not on the queue");
             }
+            if (entry.status != 0) {
+                throw new Error("The student is being helped or was already helped");
+            }
             if (entry.update_requested) {
                 throw new Error("Student has already been asked to update question");
             }
