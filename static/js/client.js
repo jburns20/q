@@ -356,8 +356,7 @@ socket.on("request-update", function(message) {
                 var elt = $("#update_question_modal");
                 elt.find(".id-input").val(message.id);
                 M.Modal.getInstance(elt).open();
-            }
-            else if (ta_id) {
+            } else if (ta_id) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".help-button").removeClass("hide")
                     .removeClass("waves-light btn blue")
@@ -376,15 +375,6 @@ socket.on("update-question", function(message) {
         window.location.reload();
         return;
     }
-
-    $("#queue li").each(function(index, item) {
-        if ($(item).data("entryId") == message.id) {
-            $(item).find("button").addClass("hide");
-            if ($(item).hasClass("me")) {
-                $(item).find(".remove-button").removeClass("hide");
-            }
-        }
-    });
 });
 
 socket.on("remove", function(message) {
