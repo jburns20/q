@@ -137,16 +137,15 @@ function buildTAEntry(entry) {
     } else if (entry.status == 1) {
         elt.find(".helping-text").html(`${entry.ta_full_name} is helping ${xHtml}`);
     } else if (!ta_helping_id) {
+        elt.find(".remove-button").removeClass("hide");
         if (ta_id) {
             elt.find(".remove-button").removeClass("hide");
+            elt.find(".help-button").removeClass("hide");
             if (!entry.blocked) {
-                elt.find(".help-button").removeClass("hide");
                 elt.find(".fix-question-button").removeClass("hide");
             } else {
-                elt.find(".helping-text").text("Student is updating question");
+                elt.find(".helping-text").text("Student is updating question buildtaentry");
             }
-        } else {
-            elt.find(".remove-button").removeClass("hide");
         }
     }
     return elt;
@@ -338,7 +337,8 @@ socket.on("fixq", function(message) {
             }
             else if (ta_id) {
                 $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".helping-text").text("Student is updating question");
+                $(item).find(".help-button").removeClass("hide");
+                $(item).find(".helping-text").text("Student is updating question fixq");
             }
         }
     });
