@@ -87,7 +87,7 @@ $(document).ready(function() {
         submitAddForm(true);
     })
 
-    $('input#question, textarea#question, textarea#message').characterCounter();
+    $('textarea#question, textarea#message').characterCounter();
 });
 
 
