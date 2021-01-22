@@ -111,12 +111,12 @@ exports.update = function(entry_id, updated_question) {
     }
     
     // Students: only need to update seq
-    sio.to(student_room).emit("update-question-student", {
+    sio.to(student_room).emit("update-question", {
         seq: exports.seq
     });
 
     // TAs: need to pass the updated question
-    sio.to(ta_room).emit("update-question-ta", {
+    sio.to(ta_room).emit("update-question", {
         seq: exports.seq,
         id: entry_id,
         updated_question: updated_question

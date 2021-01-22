@@ -104,7 +104,7 @@ $(document).ready(function() {
     });
 
     $(document).on("click", ".open-update-question-button", function(event) {
-        var elt = $("#update_question_modal");
+        const elt = $("#update_question_modal");
         elt.find(".id-input").val($("#queue").find(".me").data("entryId"));
         M.Modal.getInstance(elt).open();
         event.preventDefault();
@@ -159,13 +159,13 @@ function buildTAEntry(entry) {
         elt.find(".remove-button").removeClass("hide");
         if (ta_id) {
             elt.find(".help-button").removeClass("hide");
-            if (!entry.update_requested) {
-                elt.find(".fix-question-button").removeClass("hide");
-            } else {
+            if (entry.update_requested) {
                 elt.find(".help-button")
                     .removeClass("waves-light btn blue")
                     .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
                 elt.find(".helping-text").text("Student is updating question");
+            } else {
+                elt.find(".fix-question-button").removeClass("hide");
             }
         }
     }
@@ -354,7 +354,7 @@ socket.on("request-update", function(message) {
                     console.log("There was an error showing a browser notification.");
                 }
 
-                var elt = $("#update_question_modal");
+                const elt = $("#update_question_modal");
                 elt.find(".id-input").val(message.id);
                 M.Modal.getInstance(elt).open();
             } else if (ta_id) {
@@ -370,14 +370,13 @@ socket.on("request-update", function(message) {
     });
 });
 
-socket.on("update-question-student", function(message) {
+socket.on("update-question", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
-});
 
-socket.on("update-question-ta", function(message) {
-    if (disable_updates) return;
-    checkAndUpdateSeq(message.seq);
+    if (!ta_id) {
+        return; // Nothing more to be done for students
+    }
 
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
@@ -409,6 +408,7 @@ socket.on("remove", function(message) {
         if ($(item).data("entryId") == message.id) {
             if ($(item).hasClass("me")) {
                 $("#add_form").show();
+                M.Modal.getInstance($("#update_question_modal")).close();
             }
             $(item).remove();
         }
@@ -451,10 +451,7 @@ socket.on("help", function(message) {
                     $("#modal_ta_video_chat_url").hide();
                 }
                 
-                const update_question_modal = M.Modal.getInstance($("#update_question_modal"));
-                if (update_question_modal.isOpen) {
-                    update_question_modal.close();
-                }
+                M.Modal.getInstance($("#update_question_modal")).close();
                 M.Modal.getInstance($("#help_modal")).open();
             }
         }
