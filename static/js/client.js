@@ -56,6 +56,10 @@ $(document).ready(function() {
     $('select').formSelect();
     $('.modal').modal();
 
+    // MaterializeCSS hides the native select, which causes the data-error to not show up
+    // This is a little bit of a "hacky" way to ensure the user selects a topic
+    $('select[required]').css({display: "block", top: "0%", padding: 0, opacity: 0, position: 'absolute'});
+    
     // Enables confirmation for the Remove button
     $(document).on("click", ".remove-button", function(event) {
         if (!$(this).hasClass("confirming")) {
@@ -124,15 +128,15 @@ $(document).ready(function() {
         submitAddForm(true);
     })
 
-    $('input#question, textarea#question').characterCounter();
+    $('textarea#question, textarea#message').characterCounter();
 });
 
 
 function editMessage() {
     $("#message").hide();
     $("#message_form").show();
-    var len = $("#message_form input").val().length;
-    $("#message_form input").focus().get(0).setSelectionRange(len, len);
+    var len = $("#message_form textarea").val().length;
+    $("#message_form textarea").focus().get(0).setSelectionRange(len, len);
 }
 
 function cancelEditMessage() {

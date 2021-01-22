@@ -18,7 +18,10 @@
   </div>
   <%_ if (session && (session.TA || session.owner)) { _%>
   <form id="message_form" method='POST' action="/options" class='center input-field'>
-    <input type='text' placeholder="most basic HTML tags are supported" style='width: 50%;' name="message" value='<%= message %>'>
+    <div class="container">
+      <textarea id="message" placeholder="Most basic HTML tags are supported" name="message" maxlength=255 data-length="255" required class="materialize-textarea"><%= message %></textarea>
+    </div>
+    <br>
     <button type='button' class='btn-flat' onclick="cancelEditMessage(); return false;">Cancel</button>
     <button type='submit' class='btn waves-effect waves-light cyan'>Submit</button>
   </form>
@@ -61,7 +64,7 @@
     <label for="user_id">Andrew ID</label>
   </div>
   <div class="input-field inline col l4 m4 s12">
-    <select novalidate id="topic" name="topic_id">
+    <select id="topic" class="topic" name="topic_id" required>
         <option value="" disabled selected hidden>Choose a topic</option>
       <%_ topics.forEach(function(topic) { _%>
         <option value="<%= topic.id %>"><%= topic.name %></option>
@@ -71,7 +74,7 @@
     <label for="topic">What would you like help with?</label>
   </div>
   <div class="input-field inline col l10 m10 s12">
-      <input id="question" name="question" type="text" minlength=3 maxlength=255 data-length="255" required>
+      <textarea id="question" name="question" type="text" minlength=3 maxlength=255 data-length="255" required class="materialize-textarea"></textarea>
       <label for="question">Question</label>
   </div>
   <div class="input-field inline col l2 m2 s12 center-btn">
