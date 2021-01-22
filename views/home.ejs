@@ -111,17 +111,14 @@
   <div class="modal-content center-align">
     <h4>Please update your question!</h4>
     <p>Before we can help, we need some more details from you.</p>
-    <p>Especially for homework problems, we want to know <strong>what you've tried and/or already understand</strong> in addition to what you're looking for guidance on. Be sure to read the Diderot Guides to Success chapter
-    <i>
-      <%_ if (guide_url) { _%>
+    <p>Especially for homework problems, we can help you more effectively if we know <strong>what you've tried and/or already understand</strong> in addition to what you're looking for guidance on.
+    <%_ if (guide_url) { _%>
+        Be sure to read the
         <a id="guide_url" href="<%= guide_url %>" target="_blank">
           Asking Questions
-        </a> 
-        <%_ } else { _%>
-          Asking Questions
-        <%_ } _%>
-    </i>
-    for more on this!</p>
+        </a> guide for more on this!
+    <%_ } _%>
+    </p>
     <p>If you're having trouble rewording your question, enter "Need help with question" to ask a TA for help.</p>
     <form method='POST'>
       <input type='hidden' class='id-input' name='entry_id'>

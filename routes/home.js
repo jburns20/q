@@ -385,7 +385,7 @@ function post_done(req, res) {
     });
 }
 
-function post_fixq(req, res) {
+function post_request_update(req, res) {
     var id = req.body.entry_id;
     model.sql.transaction(function(t) {
         if (!p.is_ta(req)) {
@@ -398,6 +398,9 @@ function post_fixq(req, res) {
             if (!entry) {
                 throw new Error("The student is not on the queue");
             }
+            if (entry.status != 0) {
+                throw new Error("The student is being helped or was already helped");
+            }
             if (entry.update_requested) {
                 throw new Error("Student has already been asked to update question");
             }
@@ -407,9 +410,7 @@ function post_fixq(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
-        realtime.fixq(id);
-        return waittimes.update();
-    }).then(function(waittimes) {
+        realtime.request_update(id);
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
@@ -428,6 +429,13 @@ function post_update(req, res) {
             if (!entry) {
                 throw new Error("The student is not on the queue");
             }
+            // Only entries that have not yet been helped can be updated.
+            // You need to be logged in as the student who matches the entry.
+            if (!(entry.status == 0 && req.session
+                && (req.session.id == entry.session_id
+                    || (p.is_logged_in(req) && req.session.user_id == entry.user_id)))) {
+                throw new Error("You don't have permission to update that entry");
+            }
             if (!entry.update_requested) {
                 throw new Error("Question has already been updated");
             }
@@ -441,9 +449,7 @@ function post_update(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
-        realtime.update(id);
-        return waittimes.update();
-    }).then(function(waittimes) {
+        realtime.update(id, updated_question);
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);
@@ -458,7 +464,7 @@ exports.post = function(req, res) {
         case "HELP": post_help(req, res); break;
         case "CANCEL": post_cancel(req, res); break;
         case "DONE": post_done(req, res); break;
-        case "FIXQ": post_fixq(req, res); break;
+        case "REQUEST-UPDATE": post_request_update(req, res); break;
         case "UPDATE-QUESTION": post_update(req, res); break;
         default:
             respond(req, res, "Invalid action: " + action);

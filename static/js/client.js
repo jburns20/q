@@ -1,6 +1,7 @@
+const fixQuestionIconHtml = "<i class='qedit-icon material-icons' style='font-size: 20px; margin: 0px -15px;'>help_outline</i>"
 const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
 const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
-const fixqHtml = "<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='FIXQ'><i class='fas fa-edit qedit-icon '></i></button>";
+const requestUpdateHtml = `<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='REQUEST-UPDATE'>${fixQuestionIconHtml}</button>`;
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
 const openUpdateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
@@ -17,7 +18,7 @@ const entryHtml = `
                 </div>
                 <div class='entry-item entry-spacer'></div>
                 <div class='entry-item entry-container entry-buttons'>
-                    ${fixqHtml}
+                    ${requestUpdateHtml}
                     ${openUpdateQuestionModalHtml}
                     ${removeHtml}
                     ${helpHtml}
@@ -76,11 +77,11 @@ $(document).ready(function() {
             $(".fix-confirming").each(function() {
                 $(this).removeClass("fix-confirming red white-text")
                     .addClass("grey lighten-2 grey-text text-darken-3")
-                    .text("").html("<i class='fas fa-edit qedit-icon'></i>");
+                    .html(fixQuestionIconHtml);
             });
             $(this).addClass("fix-confirming red white-text")
                 .removeClass("grey lighten-2 grey-text text-darken-3")
-                .html("").text("Ask to Fix");
+                .text("Ask to Fix");
             event.preventDefault();
         }
     });
@@ -97,7 +98,7 @@ $(document).ready(function() {
             $(".fix-confirming").each(function() {
                 $(this).removeClass("fix-confirming red white-text")
                     .addClass("grey lighten-2 grey-text text-darken-3")
-                    .text("").html("<i class='fas fa-edit qedit-icon'></i>");
+                    .html(fixQuestionIconHtml);
             });
         }
     });
@@ -185,6 +186,7 @@ function buildMyEntry(entry) {
     } else {
         if (entry.update_requested) {
             elt.find(".open-update-question-button").removeClass("hide");
+            elt.find(".helping-text").text("Please update your question");
         }
         elt.find(".remove-button").removeClass("hide");
     }
@@ -328,7 +330,7 @@ socket.on("add", function(message) {
     updateStatus();
 });
 
-socket.on("fixq", function(message) {
+socket.on("request-update", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
 
@@ -343,8 +345,9 @@ socket.on("fixq", function(message) {
 
                 try {
                     if (("Notification" in window) && (Notification.permission == "granted")) {
-                        var notification = new Notification("Your question is not detailed enough!", {
-                            "body": "Please update your question."
+                        var notification = new Notification("Update Question Request", {
+                            "body": "Please refine your question so we can help you more efficiently.",
+                            "requireInteraction": true
                         });
                     }
                 } catch (error) {
@@ -354,33 +357,47 @@ socket.on("fixq", function(message) {
                 var elt = $("#update_question_modal");
                 elt.find(".id-input").val(message.id);
                 M.Modal.getInstance(elt).open();
-            }
-            else if (ta_id) {
-                $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".help-button").removeClass("hide")
-                    .removeClass("waves-light btn blue")
-                    .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+            } else if (ta_id) {
+                if (!ta_helping_id) {
+                    $(item).find(".remove-button").removeClass("hide");
+                    $(item).find(".help-button").removeClass("hide")
+                        .removeClass("waves-light btn blue")
+                        .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                }
                 $(item).find(".helping-text").text("Student is updating question");
             }
         }
     });
 });
 
-socket.on("update-question", function(message) {
+socket.on("update-question-student", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
+});
 
-    if (ta_id) { // A student's question is updated, reload
-        window.location.reload();
-        return;
-    }
+socket.on("update-question-ta", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
 
     $("#queue li").each(function(index, item) {
         if ($(item).data("entryId") == message.id) {
             $(item).find("button").addClass("hide");
-            if ($(item).hasClass("me")) {
+            $(item).find(".helping-text").text("");
+            
+            if (!ta_helping_id) {
                 $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".help-button").removeClass("hide")
+                    .addClass("waves-light btn blue")
+                    .removeClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                $(item).find(".fix-question-button").removeClass("hide");
             }
+
+            // To prevent needing to pass all the fields required for entry-question (topic, cooldown)
+            // We substring the old question to retrieve the "header", then append the updated question
+            const entry_question = $(item).find(".entry-question")
+            const old_question = entry_question.html().toString();
+            const question_header = old_question.substring(0, old_question.indexOf("]") + 2);
+            entry_question.html(`${question_header} ${message.updated_question.replace(/</g, "&lt;")}`);
         }
     });
 });
@@ -419,7 +436,8 @@ socket.on("help", function(message) {
                 try {
                     if (("Notification" in window) && (Notification.permission == "granted")) {
                         var notification = new Notification("It's your turn to get help!", {
-                            "body": message.data.ta_full_name + " is ready to help you."
+                            "body": message.data.ta_full_name + " is ready to help you.",
+                            "requireInteraction": true
                         });
                     }
                 } catch (error) {
