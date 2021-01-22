@@ -61,7 +61,7 @@
     <label for="user_id">Andrew ID</label>
   </div>
   <div class="input-field inline col l4 m4 s12">
-    <select novalidate id="topic" name="topic_id">
+    <select id="topic" class="topic" name="topic_id" required>
         <option value="" disabled selected hidden>Choose a topic</option>
       <%_ topics.forEach(function(topic) { _%>
         <option value="<%= topic.id %>"><%= topic.name %></option>
