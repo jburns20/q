@@ -449,7 +449,7 @@ function post_update(req, res) {
         })
     }).then(function(result) {
         entries_cache = null;
-        realtime.update(id);
+        realtime.update(id, updated_question);
         respond(req, res, null);
     }).catch(function(error) {
         respond(req, res, "Error: " + error.message);

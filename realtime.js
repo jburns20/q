@@ -103,15 +103,23 @@ exports.request_update = function(entry_id) {
     });
 };
 
-exports.update = function(entry_id) {
+exports.update = function(entry_id, updated_question) {
     exports.seq = exports.seq + 1;
     if(!sio) {
         console.log("ERROR: Socket.io is not initialized yet");
         return;
     }
-    sio.emit("update-question", {
+    
+    // Students: only need to update seq
+    sio.to(student_room).emit("update-question-student", {
+        seq: exports.seq
+    });
+
+    // TAs: need to pass the updated question
+    sio.to(ta_room).emit("update-question-ta", {
         seq: exports.seq,
-        id: entry_id
+        id: entry_id,
+        updated_question: updated_question
     });
 };
 

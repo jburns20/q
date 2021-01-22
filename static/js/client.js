@@ -358,24 +358,48 @@ socket.on("request-update", function(message) {
                 elt.find(".id-input").val(message.id);
                 M.Modal.getInstance(elt).open();
             } else if (ta_id) {
-                $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".help-button").removeClass("hide")
-                    .removeClass("waves-light btn blue")
-                    .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                if (!ta_helping_id) {
+                    $(item).find(".remove-button").removeClass("hide");
+                    $(item).find(".help-button").removeClass("hide")
+                        .removeClass("waves-light btn blue")
+                        .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                }
                 $(item).find(".helping-text").text("Student is updating question");
             }
         }
     });
 });
 
-socket.on("update-question", function(message) {
+socket.on("update-question-student", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
+});
+
+socket.on("update-question-ta", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
 
-    if (ta_id) { // A student's question is updated, reload
-        window.location.reload();
-        return;
-    }
+    $("#queue li").each(function(index, item) {
+        if ($(item).data("entryId") == message.id) {
+            $(item).find("button").addClass("hide");
+            $(item).find(".helping-text").text("");
+            
+            if (!ta_helping_id) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".help-button").removeClass("hide")
+                    .addClass("waves-light btn blue")
+                    .removeClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                $(item).find(".fix-question-button").removeClass("hide");
+            }
+
+            // To prevent needing to pass all the fields required for entry-question (topic, cooldown)
+            // We substring the old question to retrieve the "header", then append the updated question
+            const entry_question = $(item).find(".entry-question")
+            const old_question = entry_question.html().toString();
+            const question_header = old_question.substring(0, old_question.indexOf("]") + 2);
+            entry_question.html(`${question_header} ${message.updated_question.replace(/</g, "&lt;")}`);
+        }
+    });
 });
 
 socket.on("remove", function(message) {
