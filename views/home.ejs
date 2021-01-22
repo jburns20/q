@@ -182,6 +182,9 @@ $(document).ready(function() {
         $("#modal_ta_video_chat_url").hide();
       <% } %>
       M.Modal.getInstance($("#help_modal")).open();
+    <%_ } else if (entry.update_requested) { %>
+        $("#update_question_modal").find(".id-input").val(<%= entry.id %>);
+        M.Modal.getInstance($("#update_question_modal")).open();
     <%_ } %>
   <%_ } else if (session && (session.TA || session.owner)) { _%>
     $("#queue").append(buildTAEntry(<%- JSON.stringify({

@@ -104,7 +104,7 @@ $(document).ready(function() {
     });
 
     $(document).on("click", ".open-update-question-button", function(event) {
-        var elt = $("#update_question_modal");
+        const elt = $("#update_question_modal");
         elt.find(".id-input").val($("#queue").find(".me").data("entryId"));
         M.Modal.getInstance(elt).open();
         event.preventDefault();
@@ -354,7 +354,7 @@ socket.on("request-update", function(message) {
                     console.log("There was an error showing a browser notification.");
                 }
 
-                var elt = $("#update_question_modal");
+                const elt = $("#update_question_modal");
                 elt.find(".id-input").val(message.id);
                 M.Modal.getInstance(elt).open();
             } else if (ta_id) {
@@ -408,6 +408,7 @@ socket.on("remove", function(message) {
         if ($(item).data("entryId") == message.id) {
             if ($(item).hasClass("me")) {
                 $("#add_form").show();
+                M.Modal.getInstance($("#update_question_modal")).close();
             }
             $(item).remove();
         }
@@ -450,10 +451,7 @@ socket.on("help", function(message) {
                     $("#modal_ta_video_chat_url").hide();
                 }
                 
-                const update_question_modal = M.Modal.getInstance($("#update_question_modal"));
-                if (update_question_modal.isOpen) {
-                    update_question_modal.close();
-                }
+                M.Modal.getInstance($("#update_question_modal")).close();
                 M.Modal.getInstance($("#help_modal")).open();
             }
         }
