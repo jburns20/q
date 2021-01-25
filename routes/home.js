@@ -70,6 +70,7 @@ exports.get = function(req, res) {
                     order: [['due_date', 'ASC']]
                 })
             }(),
+            guide_url: options.ask_question_guide_link(),
             frozen: options.frozen(),
             message: options.message()
         }).then(function(results) {
@@ -85,6 +86,7 @@ exports.get = function(req, res) {
                 entries: results.entries,
                 topics: results.topics,
                 seq: realtime.seq,
+                guide_url: results.guide_url,
                 frozen: results.frozen,
                 message: results.message,
                 waittimes: waittimes.get(),
@@ -202,6 +204,7 @@ function post_add(req, res) {
             topic_id: topic_id,
             question: question,
             cooldown_override: (cooldown_override ? 1 : 0),
+            update_requested: false,
         });
     }).then(function(instance) {
         entries_cache = null;
@@ -270,7 +273,8 @@ function post_help(req, res) {
             return entry.update({
                 status: 1,
                 help_time: new Date(),
-                ta_id: req.session.TA.id
+                ta_id: req.session.TA.id,
+                update_requested: false
             }, {transaction: t});
         }).then(function() {
             var num_today = req.session.TA.num_today;
@@ -381,19 +385,88 @@ function post_done(req, res) {
     });
 }
 
+function post_request_update(req, res) {
+    var id = req.body.entry_id;
+    model.sql.transaction(function(t) {
+        if (!p.is_ta(req)) {
+            throw new Error("You don't have permission to block that student");
+        }
+        return model.Entry.findByPk(id, {
+            transaction: t,
+            lock: Sequelize.Transaction.LOCK.UPDATE,
+        }).then(function(entry) {
+            if (!entry) {
+                throw new Error("The student is not on the queue");
+            }
+            if (entry.status != 0) {
+                throw new Error("The student is being helped or was already helped");
+            }
+            if (entry.update_requested) {
+                throw new Error("Student has already been asked to update question");
+            }
+            return entry.update({
+                update_requested: true,
+            }, {transaction: t});
+        })
+    }).then(function(result) {
+        entries_cache = null;
+        realtime.request_update(id);
+        respond(req, res, null);
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error.message);
+    });
+}
+
+function post_update(req, res) {
+    var id = req.body.entry_id;
+    var updated_question = req.body.question;
+
+    model.sql.transaction(function(t) {
+        return model.Entry.findByPk(id, {
+            transaction: t,
+            lock: Sequelize.Transaction.LOCK.UPDATE,
+        }).then(function(entry) {
+            if (!entry) {
+                throw new Error("The student is not on the queue");
+            }
+            // Only entries that have not yet been helped can be updated.
+            // You need to be logged in as the student who matches the entry.
+            if (!(entry.status == 0 && req.session
+                && (req.session.id == entry.session_id
+                    || (p.is_logged_in(req) && req.session.user_id == entry.user_id)))) {
+                throw new Error("You don't have permission to update that entry");
+            }
+            if (!entry.update_requested) {
+                throw new Error("Question has already been updated");
+            }
+            if (entry.question == updated_question) {
+                throw new Error("Same question was entered again. Please update your question.");
+            }
+            return entry.update({
+                update_requested: false,
+                question: updated_question
+            }, {transaction: t});
+        })
+    }).then(function(result) {
+        entries_cache = null;
+        realtime.update(id, updated_question);
+        respond(req, res, null);
+    }).catch(function(error) {
+        respond(req, res, "Error: " + error.message);
+    });
+}
+
 exports.post = function(req, res) {
     var action = req.body.action;
-    if (action == "ADD") {
-        post_add(req, res);
-    } else if (action == "REM") {
-        post_rem(req, res);
-    } else if (action == "HELP") {
-        post_help(req, res);
-    } else if (action == "CANCEL") {
-        post_cancel(req, res);
-    } else if (action == "DONE") {
-        post_done(req, res);
-    } else {
-        respond(req, res, "Invalid action: " + action);
+    switch(action) {
+        case "ADD": post_add(req, res); break;
+        case "REM": post_rem(req, res); break;
+        case "HELP": post_help(req, res); break;
+        case "CANCEL": post_cancel(req, res); break;
+        case "DONE": post_done(req, res); break;
+        case "REQUEST-UPDATE": post_request_update(req, res); break;
+        case "UPDATE-QUESTION": post_update(req, res); break;
+        default:
+            respond(req, res, "Invalid action: " + action);
     }
 };

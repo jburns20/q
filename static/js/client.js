@@ -1,7 +1,10 @@
+const fixQuestionIconHtml = "<i class='qedit-icon material-icons' style='font-size: 20px; margin: 0px -15px;'>help_outline</i>"
 const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
 const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
+const requestUpdateHtml = `<button class='entry-item fix-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3' name='action' value='REQUEST-UPDATE'>${fixQuestionIconHtml}</button>`;
 const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
 const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
+const openUpdateQuestionModalHtml = "<button class='entry-item open-update-question-button hide waves-effect waves btn-flat grey lighten-2 grey-text text-darken-3'>Update Question</button>";
 
 const entryHtml = `
     <li class='collection-item'>
@@ -15,6 +18,8 @@ const entryHtml = `
                 </div>
                 <div class='entry-item entry-spacer'></div>
                 <div class='entry-item entry-container entry-buttons'>
+                    ${requestUpdateHtml}
+                    ${openUpdateQuestionModalHtml}
                     ${removeHtml}
                     ${helpHtml}
                     ${cancelHtml}
@@ -54,7 +59,8 @@ $(document).ready(function() {
     // MaterializeCSS hides the native select, which causes the data-error to not show up
     // This is a little bit of a "hacky" way to ensure the user selects a topic
     $('select[required]').css({display: "block", top: "0%", padding: 0, opacity: 0, position: 'absolute'});
-
+    
+    // Enables confirmation for the Remove button
     $(document).on("click", ".remove-button", function(event) {
         if (!$(this).hasClass("confirming")) {
             $(".confirming").each(function() {
@@ -68,6 +74,22 @@ $(document).ready(function() {
             event.preventDefault();
         }
     });
+
+    // Manages confirmation for fix question button
+    $(document).on("click", ".fix-question-button", function(event) {
+        if (!$(this).hasClass("fix-confirming")) {
+            $(".fix-confirming").each(function() {
+                $(this).removeClass("fix-confirming red white-text")
+                    .addClass("grey lighten-2 grey-text text-darken-3")
+                    .html(fixQuestionIconHtml);
+            });
+            $(this).addClass("fix-confirming red white-text")
+                .removeClass("grey lighten-2 grey-text text-darken-3")
+                .text("Ask to Fix");
+            event.preventDefault();
+        }
+    });
+
     $(document).click(function(event) {
         if (!$(event.target).hasClass("remove-button")) {
             $(".confirming").each(function() {
@@ -76,7 +98,22 @@ $(document).ready(function() {
                     .text("Remove");
             });
         }
+        if (!$(event.target).hasClass("fix-question-button") && !$(event.target).hasClass("qedit-icon")) {
+            $(".fix-confirming").each(function() {
+                $(this).removeClass("fix-confirming red white-text")
+                    .addClass("grey lighten-2 grey-text text-darken-3")
+                    .html(fixQuestionIconHtml);
+            });
+        }
     });
+
+    $(document).on("click", ".open-update-question-button", function(event) {
+        const elt = $("#update_question_modal");
+        elt.find(".id-input").val($("#queue").find(".me").data("entryId"));
+        M.Modal.getInstance(elt).open();
+        event.preventDefault();
+    });
+
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
 
@@ -123,11 +160,17 @@ function buildTAEntry(entry) {
     } else if (entry.status == 1) {
         elt.find(".helping-text").html(`${entry.ta_full_name} is helping ${xHtml}`);
     } else if (!ta_helping_id) {
+        elt.find(".remove-button").removeClass("hide");
         if (ta_id) {
-            elt.find(".remove-button").removeClass("hide");
             elt.find(".help-button").removeClass("hide");
-        } else {
-            elt.find(".remove-button").removeClass("hide");
+            if (entry.update_requested) {
+                elt.find(".help-button")
+                    .removeClass("waves-light btn blue")
+                    .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                elt.find(".helping-text").text("Student is updating question");
+            } else {
+                elt.find(".fix-question-button").removeClass("hide");
+            }
         }
     }
     return elt;
@@ -145,6 +188,10 @@ function buildMyEntry(entry) {
     if (entry.status == 1) {
         elt.find(".helping-text").text(entry.ta_full_name + " is helping");
     } else {
+        if (entry.update_requested) {
+            elt.find(".open-update-question-button").removeClass("hide");
+            elt.find(".helping-text").text("Please update your question");
+        }
         elt.find(".remove-button").removeClass("hide");
     }
     return elt;
@@ -287,6 +334,77 @@ socket.on("add", function(message) {
     updateStatus();
 });
 
+socket.on("request-update", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
+
+    $("#queue li").each(function(index, item) {
+        if ($(item).data("entryId") == message.id) {
+            $(item).find("button").addClass("hide");
+
+            if ($(item).hasClass("me")) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".helping-text").text("Please update your question");
+                $(item).find(".open-update-question-button").removeClass("hide");
+
+                try {
+                    if (("Notification" in window) && (Notification.permission == "granted")) {
+                        var notification = new Notification("Update Question Request", {
+                            "body": "Please refine your question so we can help you more efficiently.",
+                            "requireInteraction": true
+                        });
+                    }
+                } catch (error) {
+                    console.log("There was an error showing a browser notification.");
+                }
+
+                const elt = $("#update_question_modal");
+                elt.find(".id-input").val(message.id);
+                M.Modal.getInstance(elt).open();
+            } else if (ta_id) {
+                if (!ta_helping_id) {
+                    $(item).find(".remove-button").removeClass("hide");
+                    $(item).find(".help-button").removeClass("hide")
+                        .removeClass("waves-light btn blue")
+                        .addClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                }
+                $(item).find(".helping-text").text("Student is updating question");
+            }
+        }
+    });
+});
+
+socket.on("update-question", function(message) {
+    if (disable_updates) return;
+    checkAndUpdateSeq(message.seq);
+
+    if (!ta_id) {
+        return; // Nothing more to be done for students
+    }
+
+    $("#queue li").each(function(index, item) {
+        if ($(item).data("entryId") == message.id) {
+            $(item).find("button").addClass("hide");
+            $(item).find(".helping-text").text("");
+            
+            if (!ta_helping_id) {
+                $(item).find(".remove-button").removeClass("hide");
+                $(item).find(".help-button").removeClass("hide")
+                    .addClass("waves-light btn blue")
+                    .removeClass("waves btn-flat grey lighten-3 grey-text text-darken-2");
+                $(item).find(".fix-question-button").removeClass("hide");
+            }
+
+            // To prevent needing to pass all the fields required for entry-question (topic, cooldown)
+            // We substring the old question to retrieve the "header", then append the updated question
+            const entry_question = $(item).find(".entry-question")
+            const old_question = entry_question.html().toString();
+            const question_header = old_question.substring(0, old_question.indexOf("]") + 2);
+            entry_question.html(`${question_header} ${message.updated_question.replace(/</g, "&lt;")}`);
+        }
+    });
+});
+
 socket.on("remove", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
@@ -294,6 +412,7 @@ socket.on("remove", function(message) {
         if ($(item).data("entryId") == message.id) {
             if ($(item).hasClass("me")) {
                 $("#add_form").show();
+                M.Modal.getInstance($("#update_question_modal")).close();
             }
             $(item).remove();
         }
@@ -321,7 +440,8 @@ socket.on("help", function(message) {
                 try {
                     if (("Notification" in window) && (Notification.permission == "granted")) {
                         var notification = new Notification("It's your turn to get help!", {
-                            "body": message.data.ta_full_name + " is ready to help you."
+                            "body": message.data.ta_full_name + " is ready to help you.",
+                            "requireInteraction": true
                         });
                     }
                 } catch (error) {
@@ -334,6 +454,8 @@ socket.on("help", function(message) {
                 } else {
                     $("#modal_ta_video_chat_url").hide();
                 }
+                
+                M.Modal.getInstance($("#update_question_modal")).close();
                 M.Modal.getInstance($("#help_modal")).open();
             }
         }
@@ -356,7 +478,11 @@ socket.on("cancel", function(message) {
                 M.Modal.getInstance($("#help_modal")).close();
             } else if (ta_id && !ta_helping_id) {
                 $(item).find(".remove-button").removeClass("hide");
-                $(item).find(".help-button").removeClass("hide");
+                // revert color if student was helped while updating question
+                $(item).find(".help-button").removeClass("hide")
+                    .removeClass("waves btn-flat grey lighten-3 grey-text text-darken-2")
+                    .addClass("waves-light btn blue");
+                $(item).find(".fix-question-button").removeClass("hide");
             }
         }
     });
