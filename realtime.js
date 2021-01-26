@@ -177,3 +177,14 @@ exports.waittimes = function(times) {
         times: times
     });
 }
+
+// Takes in a list of tas to notify about their help time
+exports.notifytime = function(notif_tas) {
+    if (!sio) {
+        console.log("ERROR: Socket.io is not initialized yet");
+        return;
+    }
+    sio.to(ta_room).emit("notifytime", {
+        notif_tas: notif_tas
+    });
+}
