@@ -59,7 +59,7 @@ $(document).ready(function() {
     // MaterializeCSS hides the native select, which causes the data-error to not show up
     // This is a little bit of a "hacky" way to ensure the user selects a topic
     $('select[required]').css({display: "block", top: "0%", padding: 0, opacity: 0, position: 'absolute'});
-    
+
     // Enables confirmation for the Remove button
     $(document).on("click", ".remove-button", function(event) {
         if (!$(this).hasClass("confirming")) {
@@ -128,7 +128,7 @@ $(document).ready(function() {
         submitAddForm(true);
     })
 
-    $('textarea#question, textarea#message').characterCounter();
+    $('textarea#question').characterCounter();
 });
 
 
@@ -386,7 +386,7 @@ socket.on("update-question", function(message) {
         if ($(item).data("entryId") == message.id) {
             $(item).find("button").addClass("hide");
             $(item).find(".helping-text").text("");
-            
+
             if (!ta_helping_id) {
                 $(item).find(".remove-button").removeClass("hide");
                 $(item).find(".help-button").removeClass("hide")
@@ -454,7 +454,7 @@ socket.on("help", function(message) {
                 } else {
                     $("#modal_ta_video_chat_url").hide();
                 }
-                
+
                 M.Modal.getInstance($("#update_question_modal")).close();
                 M.Modal.getInstance($("#help_modal")).open();
             }

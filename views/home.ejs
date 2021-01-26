@@ -19,7 +19,7 @@
   <%_ if (session && (session.TA || session.owner)) { _%>
   <form id="message_form" method='POST' action="/options" class='center input-field'>
     <div class="container">
-      <textarea id="message" placeholder="Most basic HTML tags are supported" name="message" maxlength=255 data-length="255" required class="materialize-textarea"><%= message %></textarea>
+      <textarea id="message" placeholder="Most basic HTML tags are supported" name="message" class="materialize-textarea"><%= message %></textarea>
     </div>
     <br>
     <button type='button' class='btn-flat' onclick="cancelEditMessage(); return false;">Cancel</button>
