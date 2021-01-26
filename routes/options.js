@@ -1,5 +1,6 @@
 var sanitize = require('sanitize-html');
 
+var notiftime = require("../notiftime.js");
 var realtime = require("../realtime.js");
 var waittimes = require("../waittimes.js");
 var model = require("../model.js");
@@ -10,7 +11,7 @@ var config = require("../config.json");
 var allowed_tags = "<a><b><blockquote><code><del><dd><dl><dt><em><h1><h2><h3><h4><h5><h6><i><img><kbd><li><ol><p><pre><s><sup><sub><strong><strike><small><ul><br><hr>";
 
 var options_cache = {};
-var protected_keys = ["current_semester", "slack_webhook", "ask_question_guide_link", "cooldown_time"];
+var protected_keys = ["current_semester", "slack_webhook", "ask_question_guide_link", "cooldown_time", "notif_time_threshold", "notif_time_interval"];
 
 exports.get_string = function(key, default_value) {
     if (default_value === undefined) {
@@ -76,6 +77,12 @@ exports.ask_question_guide_link = function() {
 exports.cooldown_time = function() {
     return exports.get_number("cooldown_time", 0);
 };
+exports.notif_time_threshold = function() {
+    return exports.get_number("notif_time_threshold", 0);
+};
+exports.notif_time_interval = function() {
+    return exports.get_number("notif_time_interval", 0);
+};
 
 exports.get = function(req, res) {
     if (req.query.key == "frozen") {
@@ -129,6 +136,21 @@ function validate(key, value) {
         return value;
     } else if (key == "cooldown_time" && parseFloat(value) >= 0) {
         return parseFloat(value).toString();
+    } else if (key == "notif_time_threshold" && parseFloat(value) >= 0) {
+        return parseFloat(value).toString();
+    } else if (key == "notif_time_interval" && parseFloat(value) >= 0) {
+        return parseFloat(value).toString();
+    }
+}
+
+// Creates an update message for float option fields
+function create_float_update_message(field_name, prev_value, value) {
+    if (parseFloat(prev_value) > 0 && parseFloat(value) > 0) {
+        return field_name + " time updated";
+    } else if (parseFloat(prev_value) > 0) {
+        return field_name + " removed";
+    } else if (parseFloat(value) > 0) {
+        return field_name + " set";
     }
 }
 
@@ -199,13 +221,11 @@ function post_prop_update(req, key, prev_value, value) {
     } else if (key == "ask_question_guide_link") {
         return "Fix Question URL updated";
     } else if (key == "cooldown_time") {
-        if (parseFloat(prev_value) > 0 && parseFloat(value) > 0) {
-            return "Cooldown warning time limit updated";
-        } else if (parseFloat(prev_value) > 0) {
-            return "Cooldown warning removed";
-        } else if (parseFloat(value) > 0) {
-            return "Cooldown warning set";
-        }
+        return create_float_update_message("Cooldown warning", prev_value, value);
+    } else if (key == "notif_time_threshold") {
+        return create_float_update_message("TA help time notification", prev_value, value);
+    } else if (key == "notif_time_interval") {
+        return create_float_update_message("TA help time notification repeating interval", prev_value, value);
     }
 }
 

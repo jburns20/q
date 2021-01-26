@@ -548,3 +548,24 @@ socket.on("waittimes", function(message) {
     waittimes = message.times;
     updateStatus();
 });
+
+socket.on("notifytime", function(message) {
+    if (disable_updates) return;
+
+    message.notif_tas.forEach(ta => {
+        if (ta_id == ta.id) {
+            try {
+                if (("Notification" in window) && (Notification.permission == "granted")) {
+                    var notification = new Notification("Time Alert!", {
+                        "body": "You've been helping for " + ta.min_elapsed + " minutes!",
+                        "requireInteraction": true
+                    });
+                }
+            } catch (error) {
+                console.log("There was an error showing a browser notification.");
+            }
+            return; // Can only have at most one notification
+        }
+    });
+});
+
