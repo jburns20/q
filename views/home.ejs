@@ -123,7 +123,7 @@ $(document).ready(function() {
   <%_ } _%>
 
 <%_ var sawSelf = false; _%>
-const entries = [
+entries = [
 <%_ entries.forEach(function(entry) { _%>
   <%_ if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id)) { _%>
     <%_ sawSelf = true; _%>
@@ -160,9 +160,7 @@ const entries = [
   <%_ } _%>
 <%_ }); _%>
 ];
-ReactDOM.render(React.createElement(QueueContainer, {
-  entries: entries
-}), document.getElementById("queue_container"));
+renderQueueContainer();
 
 <%_ entries.forEach(function(entry) { _%>
   <%_ if (session && (entry.session_id == session.id || session.authenticated && entry.user_id == session.user_id) && entry.status == 1) { _%>

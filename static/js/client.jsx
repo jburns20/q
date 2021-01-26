@@ -1,32 +1,3 @@
-const removeHtml = "<button class='entry-item remove-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='REM'>Remove</button>";
-const cancelHtml = "<button class='entry-item cancel-button hide waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>";
-const doneHtml = "<button class='entry-item done-button hide waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>";
-const helpHtml = "<button class='entry-item help-button hide waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>";
-
-const entryHtml = `
-    <li class='collection-item'>
-        <form method='POST'>
-            <div class='helping-text teal-text lighten-1'></div>
-            <div class='entry-container'>
-                <input type='hidden' class='id-input' name='entry_id'>
-                <div class='entry-item entry-container entry-text'>
-                    <div class='entry-item entry-name'></div>
-                    <div class='entry-item entry-question'></div>
-                </div>
-                <div class='entry-item entry-spacer'></div>
-                <div class='entry-item entry-container entry-buttons'>
-                    ${removeHtml}
-                    ${helpHtml}
-                    ${cancelHtml}
-                    ${doneHtml}
-                </div>
-            </div>
-        </form>
-    </li>
-`;
-
-var xHtml = "<button class='waves-effect waves btn-flat grey lighten-2 black-text x-button' name='action' value='CANCEL'>X</button>";
-
 var mq;
 var disable_updates = false;
 
@@ -51,28 +22,6 @@ $(document).ready(function() {
     $('select').formSelect();
     $('.modal').modal();
 
-    $(document).on("click", ".remove-button", function(event) {
-        if (!$(this).hasClass("confirming")) {
-            $(".confirming").each(function() {
-                $(this).removeClass("confirming red white-text")
-                    .addClass("grey lighten-3 grey-text text-darken-2")
-                    .text("Remove");
-            });
-            $(this).addClass("confirming red white-text")
-                .removeClass("grey lighten-3 grey-text text-darken-2")
-                .text("Are you sure?");
-            event.preventDefault();
-        }
-    });
-    $(document).click(function(event) {
-        if (!$(event.target).hasClass("remove-button")) {
-            $(".confirming").each(function() {
-                $(this).removeClass("confirming red white-text")
-                    .addClass("grey lighten-3 grey-text text-darken-2")
-                    .text("Remove");
-            });
-        }
-    });
     mq = window.matchMedia("(min-width: 761px)");
     mq.onchange = positionOverlay;
 
@@ -101,76 +50,100 @@ function cancelEditMessage() {
     $("#message").show();
 }
 
+function HelpingText(props) {
+    return <div className='helping-text teal-text lighten-1'>
+        {props.status == 1 && (!!props.ta_id && props.ta_id == ta_id
+            ? "You are helping"
+            : props.ta_full_name + " is helping"
+        )}
+        {props.status == 1 && !!ta_id && props.ta_id != ta_id &&
+            <button className='waves-effect waves btn-flat grey lighten-2 black-text x-button' name='action' value='CANCEL'>X</button>
+        }
+    </div>;
+}
 
-//REQUIRED FIELDS: id, status, name, user_id, ta_id, topic_name, ta_full_name, question
-function buildTAEntry(entry) {
-    var elt = $(entryHtml);
-    elt.attr("data-id", entry.id);
-    elt.find(".id-input").val(entry.id);
-    elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
-    elt.find(".entry-question").html(`${entry.cooldown_override ? '\u21BB ' : ''}[${entry.topic_name}] ${entry.question.replace(/</g, "&lt;")}`);
-
-    if (entry.status == 1 && ta_id == entry.ta_id) {
-        elt.find(".cancel-button").removeClass("hide");
-        elt.find(".done-button").removeClass("hide");
-        elt.find(".helping-text").text("You are helping");
-    } else if (entry.status == 1) {
-        elt.find(".helping-text").html(`${entry.ta_full_name} is helping ${xHtml}`);
-    } else if (!ta_helping_id) {
-        if (ta_id) {
-            elt.find(".remove-button").removeClass("hide");
-            elt.find(".help-button").removeClass("hide");
-        } else {
-            elt.find(".remove-button").removeClass("hide");
+function RemoveButton() {
+    const [confirming, setConfirming] = React.useState(false);
+    const ref = React.createRef();
+    React.useEffect(()=>{
+        function documentClick(event) {
+            if (confirming && ref.current && !ref.current.contains(event.target)) {
+                setConfirming(false);
+            }
+        }
+        document.addEventListener("click", documentClick);
+        return () => { document.removeEventListener("click", documentClick); };
+    });
+    function onClick(e) {
+        if (!confirming) {
+            setConfirming(true);
+            e.preventDefault();
         }
     }
-    return elt;
+    const classNames = confirming ? 'confirming red white-text' : 'grey lighten-3 grey-text text-darken-2';
+    return <button className={'entry-item remove-button waves-effect waves btn-flat ' + classNames}
+                   name='action'
+                   value='REM'
+                   onClick={onClick}
+                   ref={ref}>
+        {confirming ? 'Are you sure?' : 'Remove'}
+    </button>;
 }
 
-//REQUIRED FIELDS: id, status, name, user_id, topic_name, ta_full_name
-function buildMyEntry(entry) {
-    var elt = $(entryHtml);
-    elt.addClass("me");
-    elt.attr("data-id", entry.id);
-    elt.find(".id-input").val(entry.id);
-    elt.find(".entry-name").html(`${entry.name} (${entry.user_id})`);
-    elt.find(".entry-question").html(`[${entry.topic_name}] ${entry.question.replace(/</g, "&lt;")}`);
-
-    if (entry.status == 1) {
-        elt.find(".helping-text").text(entry.ta_full_name + " is helping");
-    } else {
-        elt.find(".remove-button").removeClass("hide");
-    }
-    return elt;
+function HelpButton() {
+    return <button className='entry-item help-button waves-effect waves-light btn blue' name='action' value='HELP'>Help</button>;
 }
 
-//REQUIRED FIELDS: id, status, ta_full_name
-function buildStudentEntry(entry) {
-    var elt = $(entryHtml);
-    elt.attr("data-id", entry.id);
-    elt.find(".id-input").val(entry.id);
-    if (entry.status == 1) {
-        elt.find(".helping-text").text(entry.ta_full_name + " is helping");
+function CancelButton() {
+    return <button className='entry-item cancel-button waves-effect waves btn-flat grey lighten-3 grey-text text-darken-2' name='action' value='CANCEL'>Cancel</button>;
+}
+
+function DoneButton() {
+    return <button className='entry-item done-button waves-effect waves-light btn blue' name='action' value='DONE'>Done</button>;
+}
+
+function Entry(props) {
+    var classNames = "collection-item";
+    if (props.kind == "myEntry") {
+        classNames += " me";
     }
-    return elt;
+    return <li className={classNames} data-id={props.id}>
+        <form method='POST'>
+            <HelpingText {...props}/>
+            <div className='entry-container'>
+                <input type='hidden' className='id-input' name='entry_id' value={props.id}/>
+                <div className='entry-item entry-container entry-text'>
+                    <div className='entry-item entry-name'>
+                        {props.name}
+                        {' '}
+                        {!!props.user_id && "(" + props.user_id + ")"}
+                    </div>
+                    <div className='entry-item entry-question'>
+                        {props.cooldown_override && '\u21BB'}
+                        {' '}
+                        {!!props.topic_name && "[" + props.topic_name + "]"}
+                        {' '}
+                        {!!props.question && props.question.replace(/</g, "&lt;")}
+                    </div>
+                </div>
+                <div className='entry-item entry-spacer'></div>
+                <div className='entry-item entry-container entry-buttons'>
+                    {props.status != 1 && (props.kind == "myEntry" || ta_id || is_owner) && !ta_helping_id && <RemoveButton/>}
+                    {props.status != 1 && !ta_helping_id && !!ta_id && <HelpButton/>}
+                    {props.status == 1 && !!props.ta_id && props.ta_id == ta_id && <CancelButton/>}
+                    {props.status == 1 && !!props.ta_id && props.ta_id == ta_id && <DoneButton/>}
+                </div>
+            </div>
+        </form>
+    </li>;
 }
 
 function EntryList(props) {
-    var html = "";
-    props.entries.forEach(function(entry) {
-        var element = null;
-        if (entry.kind == "myEntry") {
-            element = buildMyEntry(entry);
-        } else if (entry.kind == "taEntry") {
-            element = buildTAEntry(entry);
-        } else if (entry.kind == "studentEntry") {
-            element = buildStudentEntry(entry);
-        }
-        if (element) {
-            html += element[0].outerHTML;
-        }
-    });
-    return <ul className="collection" id="queue" dangerouslySetInnerHTML={{__html: html}}/>;
+    return <ul className="collection" id="queue">
+        {props.entries.map((entry) =>
+            <Entry key={entry.id} {...entry}/>
+        )}
+    </ul>;
 }
 
 function QueueContainer(props) {
@@ -182,6 +155,10 @@ function QueueContainer(props) {
         </div>
         <EntryList entries={props.entries}/>
     </>;
+}
+
+function renderQueueContainer() {
+    ReactDOM.render(<QueueContainer entries={entries}/>, document.getElementById("queue_container"));
 }
 
 function positionOverlay() {
@@ -299,13 +276,12 @@ socket.on("add", function(message) {
     } catch (error) {
         console.log("There was an error showing a browser notification.");
     }
-    var elt = null;
     if (ta_id || is_owner) {
-        elt = buildTAEntry(message.data);
+        entries.push(message.data);
     } else {
-        elt = buildStudentEntry(message);
+        entries.push({ id: message.id });
     }
-    $("#queue").append(elt);
+    renderQueueContainer();
     positionOverlay();
     updateStatus();
 });
@@ -313,14 +289,14 @@ socket.on("add", function(message) {
 socket.on("remove", function(message) {
     if (disable_updates) return;
     checkAndUpdateSeq(message.seq);
-    $("#queue li").each(function(index, item) {
-        if ($(item).attr("data-id") == message.id) {
-            if ($(item).hasClass("me")) {
-                $("#add_form").show();
-            }
-            $(item).remove();
+    const index = entries.findIndex((entry) => { return entry.id == message.id; });
+    if (index >= 0) {
+        if (entries[index].kind == 'myEntry') {
+            $("#add_form").show();
         }
-    });
+        entries.splice(index, 1);
+    }
+    renderQueueContainer();
     positionOverlay();
     updateStatus();
 });
@@ -393,14 +369,14 @@ socket.on("done", function(message) {
         window.location.reload();
         return;
     }
-    $("#queue li").each(function(index, item) {
-        if ($(item).attr("data-id") == message.id) {
-            if ($(item).hasClass("me")) {
-                $("#add_form").show();
-            }
-            $(item).remove();
+    const index = entries.findIndex((entry) => { return entry.id == message.id; });
+    if (index >= 0) {
+        if (entries[index].kind == 'myEntry') {
+            $("#add_form").show();
         }
-    });
+        entries.splice(index, 1);
+    }
+    renderQueueContainer();
     positionOverlay();
     updateStatus();
 });
