@@ -13,7 +13,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.32",
     "mysql2": "^2.2.5",
-    "sanitize-html": "^1.27.5",
+    "sanitize-html": "^2.3.2",
     "sequelize": "^5.22.3",
     "slack-webhook": "^1.0.0",
     "socket.io": "^2.4.0",
