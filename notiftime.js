@@ -13,6 +13,7 @@
  */
 
 var Sequelize = require('sequelize');
+var Promise = require("bluebird");
 
 var model = require("./model.js");
 var realtime = require("./realtime.js");
@@ -27,7 +28,7 @@ exports.init = function() {
         var now = new Date();
         
         // Find all actively helping TAs
-        Sequelize.Promise.props({
+        Promise.props({
             notif_time_threshold: options.notif_time_threshold(),
             notif_time_interval: options.notif_time_interval(),
             tas: model.TA.findAll({

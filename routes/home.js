@@ -1,5 +1,6 @@
 var crypto = require('crypto');
 var Sequelize = require('sequelize');
+var Promise = require("bluebird");
 
 var config = require("../config.json");
 var model = require("../model.js");
@@ -44,7 +45,7 @@ exports.get = function(req, res) {
             }
             return;
         }
-        Sequelize.Promise.props({
+        Promise.props({
             entries: function() {
                 //don't re-query the database if nothing has changed
                 if (entries_cache) {
@@ -134,7 +135,7 @@ function post_add(req, res) {
         resolve();
     }).then(function() {
         // Make sure the user isn't already on the queue
-        return Sequelize.Promise.props({
+        return Promise.props({
             cooldown_time: options.cooldown_time(),
             entry: model.Entry.findOne({
                 where: {user_id: user_id},

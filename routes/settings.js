@@ -1,4 +1,5 @@
 var Sequelize = require("sequelize");
+var Promise = require("bluebird");
 var moment = require("moment-timezone");
 var validator = require('validator');
 
@@ -27,7 +28,7 @@ exports.get = function(req, res) {
     var current_semester = null;
     options.current_semester().then(function(semester) {
         current_semester = semester;
-        return Sequelize.Promise.props({
+        return Promise.props({
             webhook_url: options.slack_webhook(),
             ask_question_guide_link: options.ask_question_guide_link(),
             cooldown_time: options.cooldown_time(),

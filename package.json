@@ -5,6 +5,7 @@
   "main": "index.js",
   "author": "Jonathan Burns <jaburns@andrew.cmu.edu>",
   "dependencies": {
+    "bluebird": "^3.7.2",
     "body-parser": "^1.19.1",
     "cookie-parser": "^1.4.6",
     "ejs": "^2.7.4",
@@ -14,7 +15,7 @@
     "moment-timezone": "^0.5.34",
     "mysql2": "^2.3.3",
     "sanitize-html": "^2.6.1",
-    "sequelize": "^5.22.5",
+    "sequelize": "^6.15.0",
     "slack-webhook": "^1.0.0",
     "socket.io": "^2.4.1",
     "validator": "^13.7.0"
