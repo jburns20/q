@@ -14,7 +14,7 @@ var auth_url = oauth2Client.generateAuthUrl({
 });
 var auth_url_nodomaincheck = oauth2Client.generateAuthUrl({
   scope: ["profile", "email"]
-});
+}); 
 
 exports.get_login = function(req, res) {
     if (req.session && req.session.authenticated) {
