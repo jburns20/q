@@ -11,7 +11,7 @@
     "ejs": "^2.7.4",
     "express": "^4.17.2",
     "googleapis": "^60.0.1",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "moment-timezone": "^0.5.34",
     "mysql2": "^2.3.3",
     "sanitize-html": "^2.6.1",
