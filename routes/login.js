@@ -5,24 +5,26 @@ var config = require("../config.json");
 var model = require("../model.js");
 var options = require("./options.js");
 
-var oauth2Client = new google.auth.OAuth2(config.google_id, config.google_secret,
-  config.protocol + "://" + config.domain + "/oauth2/callback"
-);
-var auth_url = oauth2Client.generateAuthUrl({
-  scope: ["profile", "email"],
-  hd: "andrew.cmu.edu"
-});
-var auth_url_nodomaincheck = oauth2Client.generateAuthUrl({
-  scope: ["profile", "email"]
-}); 
+function getOAuth2Client(host) {
+    return new google.auth.OAuth2(
+        config.google_id,
+        config.google_secret,
+        config.protocol + "://" + host + "/oauth2/callback"
+    );
+}
 
 exports.get_login = function(req, res) {
     if (req.session && req.session.authenticated) {
         res.redirect("/");
-    } else if (req.query.domaincheck == 0) {
-        res.redirect(auth_url_nodomaincheck);
     } else {
-        res.redirect(auth_url);
+        const client = getOAuth2Client(req.host);
+        var params = {
+            scope: ["profile", "email"]
+        };
+        if (req.query.domaincheck !== '0') {
+            params['hd'] = "andrew.cmu.edu";
+        }
+        res.redirect(client.generateAuthUrl(params));
     }
 };
 
@@ -35,7 +37,8 @@ exports.get_callback = function(req, res) {
             res.send("ERROR: " + error);
         }
     };
-    var emailP = oauth2Client.getToken(req.query.code)
+    const client = getOAuth2Client(req.host);
+    var emailP = client.getToken(req.query.code)
     .then(function(result) {
         return google.oauth2("v2").userinfo.get({
             access_token: result.tokens.access_token
