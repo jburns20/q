@@ -15,7 +15,7 @@
     "moment-timezone": "^0.5.34",
     "mysql2": "^2.3.3",
     "sanitize-html": "^2.6.1",
-    "sequelize": "^6.15.0",
+    "sequelize": "^6.29.0",
     "slack-webhook": "^1.0.0",
     "socket.io": "^2.4.1",
     "validator": "^13.7.0"
